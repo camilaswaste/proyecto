@@ -14,11 +14,14 @@ export async function GET() {
         s.Apellido,
         s.Email,
         s.Telefono,
+        s.FechaNacimiento,
+        s.Direccion,
+        s.CodigoQR,
         s.FechaRegistro,
         s.EstadoSocio,
         m.NombrePlan,
         mem.FechaInicio,
-        mem.FechaVencimiento,
+        mem.FechaVencimiento as FechaFin,
         mem.Estado as EstadoMembresia
       FROM Socios s
       LEFT JOIN Membresías mem ON s.SocioID = mem.SocioID AND mem.Estado = 'Vigente'

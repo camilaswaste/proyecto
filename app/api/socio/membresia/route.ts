@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server"
 import { getConnection } from "@/lib/db"
+import sql from "mssql" 
 
+// --------------------------------------------------------------------------------
+// GET: Obtiene la membresía activa del socio (Para mostrar en el perfil o admin)
+// --------------------------------------------------------------------------------
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -17,19 +21,19 @@ export async function GET(request: Request) {
       .input("socioID", socioID)
       .query(`
         SELECT 
-          m.MembresiaID,
+          m.MembresíaID, 
           m.FechaInicio,
-          m.FechaFin,
-          m.EstadoMembresia as Estado,
+          m.FechaVencimiento AS FechaFin, 
+          m.Estado as Estado, 
           p.NombrePlan,
           p.Descripcion,
           p.Precio,
           p.DuracionDias,
           p.Beneficios
-        FROM Membresias m
+        FROM Membresías m 
         INNER JOIN PlanesMembresía p ON m.PlanID = p.PlanID
         WHERE m.SocioID = @socioID
-        AND m.EstadoMembresia = 'Activa'
+        AND m.Estado = 'Vigente' 
       `)
 
     return NextResponse.json(result.recordset[0] || null)
@@ -39,6 +43,10 @@ export async function GET(request: Request) {
   }
 }
 
+// --------------------------------------------------------------------------------
+// POST: PASO 1 - REGISTRA EL PAGO Y RETORNA EL ID
+// No asigna la membresía ni cambia estados todavía. Eso se hace en el paso 2.
+// --------------------------------------------------------------------------------
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -50,69 +58,49 @@ export async function POST(request: Request) {
 
     const pool = await getConnection()
 
-    // Get plan details
+    // 1. Obtener detalles del plan (Para saber cuánto cobrar)
     const planResult = await pool
       .request()
       .input("planID", planID)
       .query(`
-        SELECT PlanID, NombrePlan, Precio, DuracionDias
+        SELECT NombrePlan, Precio
         FROM PlanesMembresía
         WHERE PlanID = @planID AND Activo = 1
       `)
 
     if (planResult.recordset.length === 0) {
-      return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Plan no encontrado o inactivo" }, { status: 404 })
     }
 
     const plan = planResult.recordset[0]
-
-    // Deactivate current membership if exists
-    await pool
-      .request()
-      .input("socioID", socioID)
-      .query(`
-        UPDATE Membresias
-        SET EstadoMembresia = 'Inactiva'
-        WHERE SocioID = @socioID AND EstadoMembresia = 'Activa'
-      `)
-
-    // Calculate dates
-    const fechaInicio = new Date()
-    const fechaFin = new Date()
-    fechaFin.setDate(fechaFin.getDate() + plan.DuracionDias)
-
-    // Create new membership
-    await pool
-      .request()
-      .input("socioID", socioID)
-      .input("planID", planID)
-      .input("fechaInicio", fechaInicio)
-      .input("fechaFin", fechaFin)
-      .query(`
-        INSERT INTO Membresias (SocioID, PlanID, FechaInicio, FechaFin, EstadoMembresia)
-        VALUES (@socioID, @planID, @fechaInicio, @fechaFin, 'Activa')
-      `)
-
-    // Create payment record
-    await pool
+    
+    // 2. Registrar el Pago (INSERT con OUTPUT para obtener el ID)
+    // El concepto indica que falta la asignación.
+    const pagoResult = await pool
       .request()
       .input("socioID", socioID)
       .input("monto", plan.Precio)
-      .input("metodoPago", "Efectivo")
-      .input("concepto", `Membresía ${plan.NombrePlan}`)
+      .input("metodoPago", "Efectivo") // Se asume efectivo por defecto en este paso
+      .input("concepto", `Pago de Membresía: ${plan.NombrePlan} - PENDIENTE DE ASIGNACIÓN`)
       .query(`
-        INSERT INTO Pagos (SocioID, FechaPago, MontoPago, MetodoPago, Concepto)
+        INSERT INTO Pagos (SocioID, FechaPago, MontoPago, MedioPago, Concepto) 
+        OUTPUT INSERTED.PagoID 
         VALUES (@socioID, GETDATE(), @monto, @metodoPago, @concepto)
       `)
 
+    const newPagoID = pagoResult.recordset[0]?.PagoID
+
+    // 3. Retornar éxito con los datos necesarios para la redirección
     return NextResponse.json({
-      message: "Membresía adquirida exitosamente",
-      plan: plan.NombrePlan,
-      fechaInicio,
-      fechaFin,
+      success: true,
+      message: "Pago registrado. Redirigiendo a comprobante para asignación final.",
+      pagoID: newPagoID, 
+      planID: planID, 
+      socioID: socioID, 
     })
+
   } catch (error) {
-    console.error("Error al adquirir membresía:", error)
-    return NextResponse.json({ error: "Error al adquirir membresía" }, { status: 500 })
+    console.error("Error al registrar pago:", error)
+    return NextResponse.json({ error: "Error al registrar el pago" }, { status: 500 })
   }
 }

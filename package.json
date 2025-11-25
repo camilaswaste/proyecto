@@ -22,6 +22,7 @@
     "lucide-react": "^0.454.0",
     "mssql": "latest",
     "next": "^15.1.6",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.5.5",
