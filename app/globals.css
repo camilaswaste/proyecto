@@ -1,0 +1,155 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Paleta de colores rojo, blanco, negro y grises */
+
+  /* Base colors - Blanco y gris claro */
+  --background: oklch(0.99 0 0); /* Blanco muy suave */
+  --foreground: oklch(0.2 0 0); /* Negro suave para texto */
+
+  /* Card backgrounds */
+  --card: oklch(1 0 0); /* Blanco puro */
+  --card-foreground: oklch(0.2 0 0);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0 0);
+
+  /* Primary - Rojo */
+  --primary: oklch(0.5 0.22 25); /* Rojo intenso */
+  --primary-foreground: oklch(1 0 0); /* Blanco */
+
+  /* Secondary - Gris medio */
+  --secondary: oklch(0.93 0 0); /* Gris muy claro */
+  --secondary-foreground: oklch(0.2 0 0);
+
+  /* Muted - Gris claro */
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+
+  /* Accent - Rojo más claro */
+  --accent: oklch(0.95 0.05 25); /* Rojo muy suave */
+  --accent-foreground: oklch(0.5 0.22 25);
+
+  /* Destructive - Rojo intenso */
+  --destructive: oklch(0.55 0.25 27);
+  --destructive-foreground: oklch(1 0 0);
+
+  /* Borders and inputs */
+  --border: oklch(0.9 0 0); /* Gris claro */
+  --input: oklch(0.95 0 0);
+  --ring: oklch(0.5 0.22 25); /* Rojo para focus */
+
+  /* Chart colors - Variaciones de rojo y grises */
+  --chart-1: oklch(0.5 0.22 25); /* Rojo */
+  --chart-2: oklch(0.6 0.18 25); /* Rojo medio */
+  --chart-3: oklch(0.4 0 0); /* Gris oscuro */
+  --chart-4: oklch(0.7 0.12 25); /* Rojo claro */
+  --chart-5: oklch(0.6 0 0); /* Gris medio */
+
+  /* Sidebar */
+  --sidebar: oklch(0.99 0 0);
+  --sidebar-foreground: oklch(0.2 0 0);
+  --sidebar-primary: oklch(0.5 0.22 25);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0 0);
+  --sidebar-accent-foreground: oklch(0.2 0 0);
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: oklch(0.5 0.22 25);
+
+  --radius: 0.625rem;
+}
+
+.dark {
+  /* Modo oscuro con negro, gris oscuro y rojo */
+
+  /* AUMENTAMOS LUMINOSIDAD DE 0.15 a 0.20/0.22 */
+  --background: oklch(0.20 0 0); /* Antes 0.15: Negro suave -> Gris oscuro suave */
+  --foreground: oklch(0.95 0 0); 
+
+  --card: oklch(0.22 0 0); /* Antes 0.18: Negro con tono gris -> Gris ligeramente más claro */
+  --card-foreground: oklch(0.95 0 0);
+
+  --popover: oklch(0.22 0 0); /* Antes 0.18 */
+  --popover-foreground: oklch(0.95 0 0);
+
+  /* Primary, Destructive, y Chart se mantienen enfocados en el color Rojo */
+  --primary: oklch(0.6 0.25 27);
+  --primary-foreground: oklch(1 0 0);
+
+  /* Secondary y Muted deben ser más claros que el fondo para visibilidad */
+  --secondary: oklch(0.35 0 0); /* Antes 0.25: Gris oscuro -> Gris medio/oscuro */
+  --secondary-foreground: oklch(0.95 0 0);
+
+  --muted: oklch(0.35 0 0); /* Antes 0.25 */
+  --muted-foreground: oklch(0.7 0 0);
+
+  --accent: oklch(0.38 0.1 25); /* Antes 0.30 */
+
+  /* Borders and inputs deben estar entre el background y el secondary/card */
+  --border: oklch(0.30 0 0); /* Antes 0.25: Hace los bordes más visibles */
+  --input: oklch(0.28 0 0); /* Antes 0.22 */
+  --ring: oklch(0.6 0.25 27);
+
+  /* Sidebar - Aumentamos para que no sea el negro más oscuro */
+  --sidebar: oklch(0.20 0 0); /* Antes 0.12: Negro más oscuro -> Misma luminosidad que el background */
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.6 0.25 27);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.30 0 0); /* Antes 0.22 */
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.30 0 0);
+  --sidebar-ring: oklch(0.6 0.25 27);
+}
+
+@theme inline {
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
