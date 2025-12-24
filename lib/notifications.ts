@@ -14,6 +14,8 @@ export type TipoEvento =
   | "membresia_asignada"
   | "membresia_actualizada"
   | "pago_registrado"
+  | "plan_promocional"
+  | "aviso_general"
 
 interface NotificacionParams {
   tipoUsuario: "Admin" | "Entrenador" | "Socio"
@@ -27,6 +29,35 @@ export async function crearNotificacion(params: NotificacionParams) {
   const pool = await getConnection()
 
   try {
+    if (params.tipoUsuario === "Socio" && !params.usuarioID) {
+      // Obtener todos los socios activos
+      const sociosResult = await pool.request().query(`
+        SELECT SocioID
+        FROM Socios
+        WHERE EstadoSocio = 'Activo'
+      `)
+
+      console.log(`[v0] Creando notificación para ${sociosResult.recordset.length} socios activos`)
+
+      // Crear una notificación para cada socio
+      for (const socio of sociosResult.recordset) {
+        await pool
+          .request()
+          .input("tipoUsuario", params.tipoUsuario)
+          .input("usuarioID", socio.SocioID)
+          .input("tipoEvento", params.tipoEvento)
+          .input("titulo", params.titulo)
+          .input("mensaje", params.mensaje)
+          .query(`
+            INSERT INTO Notificaciones (TipoUsuario, UsuarioID, TipoEvento, Titulo, Mensaje)
+            VALUES (@tipoUsuario, @usuarioID, @tipoEvento, @titulo, @mensaje)
+          `)
+      }
+
+      console.log(`[v0] Notificación broadcast creada para todos los socios:`, params.titulo)
+      return
+    }
+
     await pool
       .request()
       .input("tipoUsuario", params.tipoUsuario)

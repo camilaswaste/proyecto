@@ -2,31 +2,33 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import DashboardLayout from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
 import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Sparkles,
-  TrendingUp,
-  DollarSign,
-  Package,
-  ArrowUpDown,
-  ArrowUp,
   ArrowDown,
-  Clock,
+  ArrowUp,
+  ArrowUpDown,
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  DollarSign,
+  Edit,
+  History,
+  Package,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  TrendingUp,
 } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface Plan {
   PlanID: number
@@ -46,6 +48,7 @@ type SortField = "NombrePlan" | "Precio" | "DuracionDias" | "TipoPlan" | "Activo
 type SortDirection = "asc" | "desc"
 
 export default function AdminMembresiasPage() {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [tipoFilter, setTipoFilter] = useState<string>("Todos")
   const [planes, setPlanes] = useState<Plan[]>([])
@@ -296,10 +299,16 @@ export default function AdminMembresiasPage() {
             <h1 className="text-3xl font-bold">Gestión de Membresías</h1>
             <p className="text-muted-foreground">Administra los planes de membresía</p>
           </div>
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Membresía
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.push("/admin/membresias/historial")}>
+              <History className="h-4 w-4 mr-2" />
+              Historial Membresías
+            </Button>
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Membresía
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -357,7 +366,7 @@ export default function AdminMembresiasPage() {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
                   <Input
                     placeholder="Buscar por nombre de plan..."
                     value={searchTerm}
@@ -372,7 +381,7 @@ export default function AdminMembresiasPage() {
                 >
                   <option value="Todos">Todos los tipos</option>
                   <option value="Normal">Normal</option>
-                  <option value="Oferta">Oferta</option>
+                  <option value="Oferta">🎉 Oferta Especial</option>
                 </select>
               </div>
 
@@ -530,7 +539,6 @@ export default function AdminMembresiasPage() {
                     </Button>
                     <div className="flex items-center gap-1">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                        // Show first, last, and current page +/- 1 pages
                         if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
                           return (
                             <Button
@@ -544,7 +552,6 @@ export default function AdminMembresiasPage() {
                             </Button>
                           )
                         } else if (page === currentPage - 2 || page === currentPage + 2) {
-                          // Show ellipsis for pages far from current
                           return (
                             <span key={page} className="px-2 py-1 text-muted-foreground">
                               ...

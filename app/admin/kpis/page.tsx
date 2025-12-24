@@ -4,22 +4,20 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { format } from "date-fns"
 import {
-  Activity,
   AlertCircle,
   CreditCard,
   DollarSign,
-  Settings2,
+  Download,
+  RefreshCw,
   Target,
   TrendingDown,
   TrendingUp,
-  UserPlus,
   Users,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Bar,
   BarChart,
@@ -35,187 +33,115 @@ import {
   YAxis,
 } from "recharts"
 
-const ingresosData = [
-  { mes: "Jul", ingresos: 3200000, meta: 3500000 },
-  { mes: "Ago", ingresos: 3400000, meta: 3500000 },
-  { mes: "Sep", ingresos: 3100000, meta: 3500000 },
-  { mes: "Oct", ingresos: 3650000, meta: 3500000 },
-  { mes: "Nov", ingresos: 3850000, meta: 3700000 },
-  { mes: "Dic", ingresos: 3850000, meta: 3700000 },
-]
-
-const asistenciaData = [
-  { dia: "Lun", asistencia: 145, capacidad: 200 },
-  { dia: "Mar", asistencia: 132, capacidad: 200 },
-  { dia: "Mié", asistencia: 158, capacidad: 200 },
-  { dia: "Jue", asistencia: 142, capacidad: 200 },
-  { dia: "Vie", asistencia: 168, capacidad: 200 },
-  { dia: "Sáb", asistencia: 95, capacidad: 200 },
-  { dia: "Dom", asistencia: 78, capacidad: 200 },
-]
-
-const membresiasData = [
-  { tipo: "Mensual", cantidad: 78, fill: "#ef4444" },
-  { tipo: "Trimestral", cantidad: 45, fill: "#f97316" },
-  { tipo: "Semestral", cantidad: 28, fill: "#eab308" },
-  { tipo: "Anual", cantidad: 15, fill: "#22c55e" },
-]
-
-const horariosData = [
-  { hora: "06:00", ocupacion: 35 },
-  { hora: "08:00", ocupacion: 65 },
-  { hora: "10:00", ocupacion: 42 },
-  { hora: "12:00", ocupacion: 28 },
-  { hora: "14:00", ocupacion: 38 },
-  { hora: "16:00", ocupacion: 55 },
-  { hora: "18:00", ocupacion: 85 },
-  { hora: "20:00", ocupacion: 72 },
-]
-
-type KPIKey =
-  | "ingresos"
-  | "retencion"
-  | "nuevosSocios"
-  | "asistencia"
-  | "ingresoPorSocio"
-  | "morosidad"
-  | "churn"
-  | "pagosDigitales"
-  | "membresias"
-
 export default function AdminKPIsPage() {
-  const [visibleKPIs, setVisibleKPIs] = useState<Set<KPIKey>>(
-    new Set([
-      "ingresos",
-      "retencion",
-      "nuevosSocios",
-      "asistencia",
-      "ingresoPorSocio",
-      "morosidad",
-      "churn",
-      "pagosDigitales",
-      "membresias",
-    ]),
-  )
+  const [periodo, setPeriodo] = useState("mensual")
+  const [loading, setLoading] = useState(true)
+  const [datos, setDatos] = useState<any>(null)
+  const [tendencias, setTendencias] = useState<any>(null)
 
-  const [selectedCategory, setSelectedCategory] = useState<"all" | "balanced" | "general">("all")
+  const fetchKPIs = async () => {
+    setLoading(true)
+    try {
+      console.log("[v0] Iniciando fetch de KPIs con período:", periodo)
 
-  const toggleKPI = (key: KPIKey) => {
-    const newSet = new Set(visibleKPIs)
-    if (newSet.has(key)) {
-      newSet.delete(key)
-    } else {
-      newSet.add(key)
+      const [kpisRes, tendenciasRes] = await Promise.all([
+        fetch(`/api/admin/kpis?periodo=${periodo}`),
+        fetch(`/api/admin/kpis/tendencias?tipo=ingresos&meses=6`),
+      ])
+
+      console.log("[v0] Status KPIs:", kpisRes.status)
+      console.log("[v0] Status tendencias:", tendenciasRes.status)
+
+      const kpisText = await kpisRes.text()
+      console.log("[v0] Respuesta KPIs (primeros 200 chars):", kpisText.substring(0, 200))
+
+      let kpisData
+      try {
+        kpisData = JSON.parse(kpisText)
+      } catch (parseError) {
+        console.error("[v0] Error al parsear JSON de KPIs:", parseError)
+        console.error("[v0] Respuesta completa:", kpisText)
+        alert("Error: La respuesta del servidor no es JSON válido. Ver consola para más detalles.")
+        setLoading(false)
+        return
+      }
+
+      const tendenciasText = await tendenciasRes.text()
+      let tendenciasData
+      try {
+        tendenciasData = JSON.parse(tendenciasText)
+      } catch (parseError) {
+        console.error("[v0] Error al parsear JSON de tendencias:", parseError)
+        tendenciasData = { datos: [] }
+      }
+
+      console.log("[v0] Datos cargados exitosamente")
+      setDatos(kpisData)
+      setTendencias(tendenciasData)
+    } catch (error) {
+      console.error("[v0] Error al cargar KPIs:", error)
+      alert("Error al cargar KPIs. Ver consola para más detalles.")
+    } finally {
+      setLoading(false)
     }
-    setVisibleKPIs(newSet)
   }
 
-  const kpis = [
-    {
-      key: "morosidad" as KPIKey,
-      title: "Tasa de Morosidad (TMM)",
-      value: "12.5%",
-      change: "-3.5%",
-      trend: "up",
-      icon: AlertCircle,
-      description: "Socios morosos / Total socios activos x 100",
-      meta: "Meta: <10% en 2 años",
-      category: "balanced",
-    },
-    {
-      key: "retencion" as KPIKey,
-      title: "Retención de Socios (PRC)",
-      value: "82%",
-      change: "+5%",
-      trend: "up",
-      icon: Target,
-      description: "Socios que renuevan / Socios activos periodo anterior x 100",
-      meta: "Meta: >80%",
-      category: "balanced",
-    },
-    {
-      key: "churn" as KPIKey,
-      title: "Tasa de Cancelación (Churn)",
-      value: "8.2%",
-      change: "-2.1%",
-      trend: "up",
-      icon: TrendingDown,
-      description: "Socios que cancelan / Socios al inicio del periodo x 100",
-      meta: "Meta: <10%",
-      category: "balanced",
-    },
-    {
-      key: "ingresoPorSocio" as KPIKey,
-      title: "Ingreso por Socio (IPSA)",
-      value: "$42.500",
-      change: "+8%",
-      trend: "up",
-      icon: DollarSign,
-      description: "Ingresos totales / Socios activos del periodo",
-      meta: "Meta: ≥$50.000 anuales",
-      category: "balanced",
-    },
-    {
-      key: "pagosDigitales" as KPIKey,
-      title: "Pagos Digitales (PPD)",
-      value: "65%",
-      change: "+12%",
-      trend: "up",
-      icon: CreditCard,
-      description: "Pagos digitales / Total de pagos x 100",
-      meta: "Meta: 70% en 2 años",
-      category: "balanced",
-    },
-    {
-      key: "membresias" as KPIKey,
-      title: "Participación Membresías (PVV)",
-      value: "45%",
-      change: "+3%",
-      trend: "up",
-      icon: Users,
-      description: "Distribución de socios por tipo de plan",
-      meta: "Meta: ≥40% planes premium",
-      category: "balanced",
-    },
-    {
-      key: "ingresos" as KPIKey,
-      title: "Ingresos Totales",
-      value: "$3.850.000",
-      change: "+12%",
-      trend: "up",
-      icon: DollarSign,
-      description: "Ingresos totales del mes actual",
-      meta: "Comparado con mes anterior",
-      category: "general",
-    },
-    {
-      key: "nuevosSocios" as KPIKey,
-      title: "Nuevos Socios",
-      value: "24",
-      change: "+15%",
-      trend: "up",
-      icon: UserPlus,
-      description: "Socios registrados este mes",
-      meta: "Meta: 20-30 mensuales",
-      category: "general",
-    },
-    {
-      key: "asistencia" as KPIKey,
-      title: "Asistencia Promedio",
-      value: "145",
-      change: "+8%",
-      trend: "up",
-      icon: Activity,
-      description: "Promedio diario de asistencias",
-      meta: "Capacidad: 200 personas",
-      category: "general",
-    },
-  ]
+  useEffect(() => {
+    fetchKPIs()
+  }, [periodo])
 
-  const filteredKPIs =
-    selectedCategory === "all"
-      ? kpis.filter((kpi) => visibleKPIs.has(kpi.key))
-      : kpis.filter((kpi) => visibleKPIs.has(kpi.key) && kpi.category === selectedCategory)
+  const handleExportPDF = async () => {
+    if (!datos) {
+      alert("No hay datos disponibles para exportar")
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/kpis/pdf?periodo=${periodo}`)
+
+      if (!response.ok) {
+        throw new Error("Error al generar PDF")
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `KPIs_Dashboard_${periodo}_${format(new Date(), "yyyyMMdd_HHmm")}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error("[v0] Error al generar PDF:", error)
+      alert("Error al generar el PDF. Por favor intenta nuevamente.")
+    }
+  }
+
+  if (loading || !datos) {
+    return (
+      <DashboardLayout role="Administrador">
+        <div className="flex items-center justify-center h-96">
+          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  const sociosActivos = datos.socios.find((s: any) => s.EstadoSocio === "Activo")?.total || 0
+  const sociosInactivos = datos.socios.find((s: any) => s.EstadoSocio === "Inactivo")?.total || 0
+  const sociosMorosos = datos.socios.find((s: any) => s.EstadoSocio === "Moroso")?.total || 0
+
+  const sociosData = datos.socios.map((s: any) => ({
+    estado: s.EstadoSocio,
+    cantidad: s.total,
+    fill: s.EstadoSocio === "Activo" ? "#22c55e" : s.EstadoSocio === "Moroso" ? "#ef4444" : "#94a3b8",
+  }))
+
+  const horariosData = datos.horariosPico.slice(0, 8).map((h: any) => ({
+    hora: `${h.hora}:00`,
+    ocupacion: h.totalEntradas,
+  }))
 
   return (
     <DashboardLayout role="Administrador">
@@ -226,168 +152,152 @@ export default function AdminKPIsPage() {
             <p className="text-muted-foreground">Métricas clave basadas en Balanced Scorecard</p>
           </div>
 
-          <div className="flex gap-2">
-            <div className="flex gap-2 mr-2">
-              <Button
-                variant={selectedCategory === "all" ? "default" : "outline"}
-                onClick={() => setSelectedCategory("all")}
-                size="sm"
-              >
-                Todos
-              </Button>
-              <Button
-                variant={selectedCategory === "balanced" ? "default" : "outline"}
-                onClick={() => setSelectedCategory("balanced")}
-                size="sm"
-              >
-                Balanced Scorecard
-              </Button>
-              <Button
-                variant={selectedCategory === "general" ? "default" : "outline"}
-                onClick={() => setSelectedCategory("general")}
-                size="sm"
-              >
-                Generales
-              </Button>
-            </div>
+          <div className="flex gap-2 items-center">
+            <Select value={periodo} onValueChange={setPeriodo}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Seleccionar período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mensual">Mensual</SelectItem>
+                <SelectItem value="trimestral">Trimestral</SelectItem>
+                <SelectItem value="anual">Anual</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2 bg-transparent">
-                  <Settings2 className="h-4 w-4" />
-                  Personalizar Vista
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Indicadores Visibles</h4>
-                    <p className="text-sm text-muted-foreground mb-3">Selecciona qué KPIs mostrar en tu dashboard</p>
-                  </div>
-                  <div className="space-y-3">
-                    {kpis.map((kpi) => (
-                      <div key={kpi.key} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={kpi.key}
-                          checked={visibleKPIs.has(kpi.key)}
-                          onCheckedChange={() => toggleKPI(kpi.key)}
-                        />
-                        <Label htmlFor={kpi.key} className="text-sm font-normal cursor-pointer">
-                          {kpi.title}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <Button onClick={handleExportPDF} variant="outline" className="gap-2 bg-transparent">
+              <Download className="h-4 w-4" />
+              Exportar PDF
+            </Button>
+
+            <Button onClick={fetchKPIs} variant="outline" size="icon">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
+        {/* KPIs Principales */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredKPIs.map((kpi) => {
-            const Icon = kpi.icon
-            return (
-              <Card key={kpi.key}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{kpi.value}</div>
-                  <div
-                    className={`flex items-center gap-1 text-xs mb-2 ${kpi.trend === "up" ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {kpi.trend === "up" ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                    <span>{kpi.change} vs mes anterior</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-1">{kpi.description}</p>
-                  <p className="text-xs font-medium text-primary">{kpi.meta}</p>
-                </CardContent>
-              </Card>
-            )
-          })}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tasa de Morosidad (TMM)</CardTitle>
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{datos.kpis.tasaMorosidad.toFixed(2)}%</div>
+              <p className="text-xs text-muted-foreground mt-2">Meta: {"<"}10%</p>
+              <p className="text-xs text-muted-foreground">{sociosMorosos} socios morosos</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Retención de Socios (PRC)</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{datos.kpis.tasaRetencion.toFixed(2)}%</div>
+              <p className="text-xs text-muted-foreground mt-2">Meta: {">"}80%</p>
+              <div
+                className={`flex items-center gap-1 text-xs ${datos.kpis.tasaRetencion >= 80 ? "text-green-600" : "text-red-600"}`}
+              >
+                {datos.kpis.tasaRetencion >= 80 ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" />
+                )}
+                <span>{datos.kpis.tasaRetencion >= 80 ? "Cumple meta" : "Por debajo de meta"}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tasa de Cancelación (Churn)</CardTitle>
+              <TrendingDown className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{datos.kpis.tasaChurn.toFixed(2)}%</div>
+              <p className="text-xs text-muted-foreground mt-2">Meta: {"<"}10%</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ingreso por Socio (IPSA)</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${datos.kpis.ingresoPromedioPorSocio.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground mt-2">Promedio por socio activo</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pagos Digitales (PPD)</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{datos.kpis.porcentajePagosDigitales.toFixed(2)}%</div>
+              <p className="text-xs text-muted-foreground mt-2">Meta: 70%</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Socios Activos</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{sociosActivos}</div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {sociosInactivos} inactivos, {sociosMorosos} morosos
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
+        {/* Gráficas */}
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Ingresos Mensuales vs Meta</CardTitle>
-              <CardDescription>Comparación con objetivo mensual</CardDescription>
+              <CardTitle>Ingresos Totales por Período</CardTitle>
+              <CardDescription>Últimos 6 meses</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer
-                config={{
-                  ingresos: {
-                    label: "Ingresos",
-                    color: "hsl(var(--chart-1))",
-                  },
-                  meta: {
-                    label: "Meta",
-                    color: "hsl(var(--chart-5))",
-                  },
-                }}
-                className="h-64"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={ingresosData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line type="monotone" dataKey="ingresos" stroke="var(--color-ingresos)" strokeWidth={2} />
-                    <Line
-                      type="monotone"
-                      dataKey="meta"
-                      stroke="var(--color-meta)"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                    />
-                    <Legend />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+              {tendencias && tendencias.datos.length > 0 ? (
+                <ChartContainer
+                  config={{
+                    total: {
+                      label: "Ingresos",
+                      color: "hsl(var(--chart-1))",
+                    },
+                  }}
+                  className="h-64"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={tendencias.datos}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="mes" />
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Line type="monotone" dataKey="total" stroke="var(--color-total)" strokeWidth={2} />
+                      <Legend />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  No hay datos disponibles
+                </div>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Asistencia vs Capacidad</CardTitle>
-              <CardDescription>Ocupación semanal del gimnasio</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  asistencia: {
-                    label: "Asistencia",
-                    color: "hsl(var(--chart-2))",
-                  },
-                  capacidad: {
-                    label: "Capacidad",
-                    color: "hsl(var(--chart-3))",
-                  },
-                }}
-                className="h-64"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={asistenciaData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="dia" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="asistencia" fill="var(--color-asistencia)" />
-                    <Bar dataKey="capacidad" fill="var(--color-capacidad)" opacity={0.3} />
-                    <Legend />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribución de Membresías</CardTitle>
-              <CardDescription>Por tipo de plan</CardDescription>
+              <CardTitle>Distribución de Socios</CardTitle>
+              <CardDescription>Por estado actual</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -400,8 +310,8 @@ export default function AdminKPIsPage() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={membresiasData} dataKey="cantidad" nameKey="tipo" cx="50%" cy="50%" outerRadius={80}>
-                      {membresiasData.map((entry, index) => (
+                    <Pie data={sociosData} dataKey="cantidad" nameKey="estado" cx="50%" cy="50%" outerRadius={80}>
+                      {sociosData.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                       ))}
                     </Pie>
@@ -415,14 +325,42 @@ export default function AdminKPIsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Horarios Peak</CardTitle>
-              <CardDescription>Ocupación por hora</CardDescription>
+              <CardTitle>Ingresos por Tipo de Membresía</CardTitle>
+              <CardDescription>Total del período seleccionado</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={{
+                  totalIngresos: {
+                    label: "Ingresos",
+                    color: "hsl(var(--chart-2))",
+                  },
+                }}
+                className="h-64"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={datos.ingresosPorMembresia}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="NombrePlan" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="totalIngresos" fill="var(--color-totalIngresos)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Horarios Pico</CardTitle>
+              <CardDescription>Entradas por hora</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
                 config={{
                   ocupacion: {
-                    label: "Ocupación %",
+                    label: "Entradas",
                     color: "hsl(var(--chart-4))",
                   },
                 }}
@@ -442,6 +380,7 @@ export default function AdminKPIsPage() {
           </Card>
         </div>
 
+        {/* Información adicional */}
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
@@ -449,18 +388,14 @@ export default function AdminKPIsPage() {
               <div className="space-y-1">
                 <p className="font-medium text-blue-900">KPIs del Proyecto - Balanced Scorecard</p>
                 <p className="text-sm text-blue-800">
-                  Estos 6 indicadores están alineados con las perspectivas del Balanced Scorecard: Financiera, Cliente y
-                  Procesos Internos. Los datos mostrados son estáticos para demostración. En producción, se calcularán
-                  automáticamente desde la base de datos según las fórmulas SMART definidas en el proyecto.
+                  Los datos mostrados se calculan en tiempo real desde tu base de datos. Los KPIs incluyen: Tasa de
+                  Morosidad (TMM), Retención (PRC), Cancelación (Churn), Ingreso por Socio (IPSA), Pagos Digitales (PPD)
+                  y Participación de Membresías (PVV).
                 </p>
-                <ul className="text-sm text-blue-800 mt-2 space-y-1 list-disc list-inside">
-                  <li>TMM: Reducir morosidad mediante control automatizado</li>
-                  <li>PRC: Evaluar fidelización post-digitalización</li>
-                  <li>Churn: Medir pérdida de socios y efectividad del sistema</li>
-                  <li>IPSA: Ingreso promedio por socio activo</li>
-                  <li>PPD: Adopción de medios de pago digitales</li>
-                  <li>PVV: Distribución por tipo de membresía</li>
-                </ul>
+                <p className="text-sm font-medium text-blue-900 mt-2">
+                  Total de ingresos del período: ${datos.ingresosTotales.totalPagos.toLocaleString()} (
+                  {datos.ingresosTotales.numeroPagos} pagos)
+                </p>
               </div>
             </div>
           </CardContent>

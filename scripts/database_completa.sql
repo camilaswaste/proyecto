@@ -18,6 +18,42 @@ CREATE NONCLUSTERED INDEX [IX_Asistencias_SocioID]
 
 GO
 
+CREATE TABLE [dbo].[AuditoriaMembresías] (
+    [AuditoriaID]       INT            IDENTITY (1, 1) NOT NULL,
+    [PlanID]            INT            NULL,
+    [NombrePlan]        NVARCHAR (100) NOT NULL,
+    [TipoAccion]        NVARCHAR (20)  NOT NULL,
+    [UsuarioID]         INT            NULL,
+    [FechaAccion]       DATETIME       DEFAULT (getdate()) NOT NULL,
+    [CamposModificados] NVARCHAR (MAX) NULL,
+    [ValoresAnteriores] NVARCHAR (MAX) NULL,
+    [ValoresNuevos]     NVARCHAR (MAX) NULL,
+    [Descripcion]       NVARCHAR (500) NULL,
+    PRIMARY KEY CLUSTERED ([AuditoriaID] ASC),
+    CONSTRAINT [CK_TipoAccion] CHECK ([TipoAccion]='DESACTIVAR' OR [TipoAccion]='ACTIVAR' OR [TipoAccion]='MODIFICAR' OR [TipoAccion]='CREAR')
+);
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_AuditoriaMembresías_PlanID]
+    ON [dbo].[AuditoriaMembresías]([PlanID] ASC);
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_AuditoriaMembresías_TipoAccion]
+    ON [dbo].[AuditoriaMembresías]([TipoAccion] ASC);
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_AuditoriaMembresías_FechaAccion]
+    ON [dbo].[AuditoriaMembresías]([FechaAccion] DESC);
+
+
+GO
+
 CREATE TABLE [dbo].[CategoriasInventario] (
     [CategoriaID]     INT            IDENTITY (1, 1) NOT NULL,
     [NombreCategoria] NVARCHAR (100) NOT NULL,
@@ -137,6 +173,48 @@ CREATE TABLE [dbo].[Entrenadores] (
 
 GO
 
+CREATE TABLE [dbo].[HistorialMembresiasSocios] (
+    [HistorialID]    INT             IDENTITY (1, 1) NOT NULL,
+    [SocioID]        INT             NOT NULL,
+    [MembresíaID]    INT             NULL,
+    [Accion]         NVARCHAR (50)   NOT NULL,
+    [PlanAnterior]   NVARCHAR (100)  NULL,
+    [PlanNuevo]      NVARCHAR (100)  NULL,
+    [EstadoAnterior] NVARCHAR (50)   NULL,
+    [EstadoNuevo]    NVARCHAR (50)   NOT NULL,
+    [FechaAnterior]  DATE            NULL,
+    [FechaNueva]     DATE            NULL,
+    [MontoAnterior]  DECIMAL (10, 2) NULL,
+    [MontoNuevo]     DECIMAL (10, 2) NULL,
+    [Motivo]         NVARCHAR (500)  NULL,
+    [Detalles]       NVARCHAR (MAX)  NULL,
+    [FechaRegistro]  DATETIME        DEFAULT (getdate()) NULL,
+    [AdminUsuario]   NVARCHAR (100)  NULL,
+    PRIMARY KEY CLUSTERED ([HistorialID] ASC),
+    FOREIGN KEY ([SocioID]) REFERENCES [dbo].[Socios] ([SocioID]) ON DELETE CASCADE
+);
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_HistorialMembresiasSocios_Fecha]
+    ON [dbo].[HistorialMembresiasSocios]([FechaRegistro] DESC);
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_HistorialMembresiasSocios_SocioID]
+    ON [dbo].[HistorialMembresiasSocios]([SocioID] ASC);
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_HistorialMembresiasSocios_Accion]
+    ON [dbo].[HistorialMembresiasSocios]([Accion] ASC);
+
+
+GO
+
 CREATE TABLE [dbo].[HorariosRecepcion] (
     [HorarioRecepcionID] INT          IDENTITY (1, 1) NOT NULL,
     [EntrenadorID]       INT          NOT NULL,
@@ -154,14 +232,14 @@ CREATE TABLE [dbo].[HorariosRecepcion] (
 
 GO
 
-CREATE NONCLUSTERED INDEX [IDX_HorariosRecepcion_Entrenador]
-    ON [dbo].[HorariosRecepcion]([EntrenadorID] ASC, [Activo] ASC);
+CREATE NONCLUSTERED INDEX [IDX_HorariosRecepcion_Dia]
+    ON [dbo].[HorariosRecepcion]([DiaSemana] ASC, [Activo] ASC);
 
 
 GO
 
-CREATE NONCLUSTERED INDEX [IDX_HorariosRecepcion_Dia]
-    ON [dbo].[HorariosRecepcion]([DiaSemana] ASC, [Activo] ASC);
+CREATE NONCLUSTERED INDEX [IDX_HorariosRecepcion_Entrenador]
+    ON [dbo].[HorariosRecepcion]([EntrenadorID] ASC, [Activo] ASC);
 
 
 GO
@@ -382,14 +460,14 @@ CREATE TABLE [dbo].[SesionesPersonales] (
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_SesionesPersonales_EntrenadorID]
-    ON [dbo].[SesionesPersonales]([EntrenadorID] ASC);
+CREATE NONCLUSTERED INDEX [IX_SesionesPersonales_SocioID]
+    ON [dbo].[SesionesPersonales]([SocioID] ASC);
 
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_SesionesPersonales_SocioID]
-    ON [dbo].[SesionesPersonales]([SocioID] ASC);
+CREATE NONCLUSTERED INDEX [IX_SesionesPersonales_EntrenadorID]
+    ON [dbo].[SesionesPersonales]([EntrenadorID] ASC);
 
 
 GO
@@ -427,14 +505,14 @@ CREATE TABLE [dbo].[Socios] (
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_Socios_RUT]
-    ON [dbo].[Socios]([RUT] ASC);
+CREATE NONCLUSTERED INDEX [IX_Socios_Email]
+    ON [dbo].[Socios]([Email] ASC);
 
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_Socios_Email]
-    ON [dbo].[Socios]([Email] ASC);
+CREATE NONCLUSTERED INDEX [IX_Socios_RUT]
+    ON [dbo].[Socios]([RUT] ASC);
 
 
 GO
@@ -473,6 +551,12 @@ CREATE TABLE [dbo].[SolicitudesMembresia] (
 
 GO
 
+CREATE NONCLUSTERED INDEX [IX_SolicitudesMembresia_FechaSolicitud]
+    ON [dbo].[SolicitudesMembresia]([FechaSolicitud] DESC);
+
+
+GO
+
 CREATE NONCLUSTERED INDEX [IX_SolicitudesMembresia_Estado]
     ON [dbo].[SolicitudesMembresia]([Estado] ASC);
 
@@ -481,12 +565,6 @@ GO
 
 CREATE NONCLUSTERED INDEX [IX_SolicitudesMembresia_SocioID]
     ON [dbo].[SolicitudesMembresia]([SocioID] ASC);
-
-
-GO
-
-CREATE NONCLUSTERED INDEX [IX_SolicitudesMembresia_FechaSolicitud]
-    ON [dbo].[SolicitudesMembresia]([FechaSolicitud] DESC);
 
 
 GO

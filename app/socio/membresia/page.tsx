@@ -103,15 +103,33 @@ export default function SocioMembresiaPage() {
         const socioID = user.socioID || user.usuarioID
 
         const membresiaResponse = await fetch(`/api/socio/membresia?socioID=${socioID}`)
+        let membresiaActual = null
         if (membresiaResponse.ok) {
-          const membresiaData = await membresiaResponse.json()
-          setCurrentMembership(membresiaData)
+          membresiaActual = await membresiaResponse.json()
+          setCurrentMembership(membresiaActual)
         }
 
         const planesResponse = await fetch("/api/admin/membresias")
         if (planesResponse.ok) {
           const planesData = await planesResponse.json()
-          setPlanes(planesData.filter((p: Plan) => p.Activo))
+          const activePlans = planesData.filter((p: Plan) => p.Activo)
+
+          if (membresiaActual) {
+            // Si el socio tiene membresía, incluir su plan actual aunque esté inactivo
+            const currentPlanInActive = activePlans.some((p: Plan) => p.NombrePlan === membresiaActual.NombrePlan)
+            if (!currentPlanInActive) {
+              const currentPlan = planesData.find((p: Plan) => p.NombrePlan === membresiaActual.NombrePlan)
+              if (currentPlan) {
+                setPlanes([currentPlan, ...activePlans])
+              } else {
+                setPlanes(activePlans)
+              }
+            } else {
+              setPlanes(activePlans)
+            }
+          } else {
+            setPlanes(activePlans)
+          }
         }
 
         const solicitudesResponse = await fetch("/api/socio/solicitudes", {
@@ -317,7 +335,7 @@ export default function SocioMembresiaPage() {
   return (
     <DashboardLayout role="Socio">
       <div className="space-y-6">
-        <div>
+        <div className="rounded-xl bg-white p-8 shadow-sm border-l-8 border-[#454545]">
           <h1 className="text-3xl font-bold">Mi Membresía</h1>
           <p className="text-muted-foreground">Gestiona tu plan de membresía</p>
         </div>

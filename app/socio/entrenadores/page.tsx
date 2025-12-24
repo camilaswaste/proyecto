@@ -145,9 +145,9 @@ export default function SocioEntrenadoresPage() {
   return (
     <DashboardLayout role="Socio">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Entrenadores</h1>
-          <p className="text-muted-foreground">Conoce a nuestros entrenadores profesionales</p>
+        <div className="rounded-xl bg-white p-8 shadow-sm border-l-8 border-[#21B536]">
+          <h1 className="text-3xl font-bold text-[#167322]">Entrenadores</h1>
+          <p className="text-[#167322]">Conoce a nuestros entrenadores profesionales</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -159,13 +159,13 @@ export default function SocioEntrenadoresPage() {
             </Card>
           ) : (
             entrenadores.map((entrenador) => (
-              <Card key={entrenador.EntrenadorID} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative h-48 bg-gradient-to-br from-primary to-primary/70">
+              <Card key={entrenador.EntrenadorID} className="relative overflow-hidden border-l-4 border-l-[#21B536] hover:shadow-lg transition-shadow">
+                <div className="relative h-48 rounded-t-xl overflow-hidden">
                   {entrenador.FotoDemo ? (
                     <img
                       src={entrenador.FotoDemo || "/placeholder.svg"}
                       alt={`${entrenador.Nombre} ${entrenador.Apellido}`}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.style.display = "none"
                       }}
@@ -201,7 +201,7 @@ export default function SocioEntrenadoresPage() {
                   </div>
                 </div>
 
-                <CardHeader className="pt-14">
+                <CardHeader className="pt-10">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle>

@@ -1,10 +1,11 @@
 "use client"
 
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getUser } from "@/lib/auth-client"
-import { Calendar, Clock, Mail, Phone, User, X } from "lucide-react"
+import { Calendar, Clock, Mail, Phone, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Sesion {
@@ -17,6 +18,7 @@ interface Sesion {
   NombreSocio: string
   EmailSocio: string
   TelefonoSocio: string
+  FotoPerfilSocio: string | null
 }
 
 export default function EntrenadorSesionesPage() {
@@ -131,25 +133,34 @@ export default function EntrenadorSesionesPage() {
           ) : (
             <div className="grid gap-4">
               {sesionesActivas.map((sesion) => (
-                <Card key={sesion.SesionID}>
+                <Card key={sesion.SesionID} className="overflow-hidden border-l-4 border-[#B1121A] hover:shadow-lg transition-all">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="flex items-center gap-2">
-                          <User className="h-5 w-5 text-primary" />
-                          {sesion.NombreSocio}
-                        </CardTitle>
-                        <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-3 w-3" />
-                            {sesion.EmailSocio}
-                          </div>
-                          {sesion.TelefonoSocio && (
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={sesion.FotoPerfilSocio || undefined} alt={sesion.NombreSocio} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {sesion.NombreSocio.split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                          <CardTitle>{sesion.NombreSocio}</CardTitle>
+                          <div className="flex flex-col gap-1 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
-                              <Phone className="h-3 w-3" />
-                              {sesion.TelefonoSocio}
+                              <Mail className="h-3 w-3" />
+                              {sesion.EmailSocio}
                             </div>
-                          )}
+                            {sesion.TelefonoSocio && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-3 w-3" />
+                                {sesion.TelefonoSocio}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(sesion.Estado)}`}>
@@ -200,13 +211,25 @@ export default function EntrenadorSesionesPage() {
                 <Card key={sesion.SesionID} className="opacity-75">
                   <CardContent className="py-4">
                     <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="font-medium">{sesion.NombreSocio}</p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{formatDate(sesion.FechaSesion)}</span>
-                          <span>
-                            {sesion.HoraInicio} - {sesion.HoraFin}
-                          </span>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={sesion.FotoPerfilSocio || undefined} alt={sesion.NombreSocio} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                            {sesion.NombreSocio.split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                          <p className="font-medium">{sesion.NombreSocio}</p>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{formatDate(sesion.FechaSesion)}</span>
+                            <span>
+                              {sesion.HoraInicio} - {sesion.HoraFin}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(sesion.Estado)}`}>

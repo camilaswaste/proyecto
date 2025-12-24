@@ -1,9 +1,10 @@
 "use client"
 
-import { CalendarCheck, RefreshCw } from "lucide-react"
+import { CalendarCheck, MessageSquare, RefreshCw, Wrench } from "lucide-react"
 import Image from "next/image"
 import type React from "react"
 
+import { Footer } from "@/components/footer"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
@@ -30,7 +31,7 @@ import {
   User,
   UserCircle,
   Users,
-  X,
+  X
 } from "lucide-react"
 
 import Link from "next/link"
@@ -133,7 +134,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
               <Icon className="h-4 w-4" />
               <span>{n.Titulo}</span>
             </div>
-          ) as any,
+          )as any,
           description: n.Mensaje,
           duration: 5000,
           className: "rounded-xl shadow-lg border bg-background",
@@ -211,12 +212,14 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         { icon: CreditCard, label: "Membresías", href: `${basePrefix}/membresias` },
         { icon: CreditCard, label: "Pagos", href: `${basePrefix}/pagos` },
         { icon: UserCircle, label: "Entrenadores", href: `${basePrefix}/entrenadores` },
+        { icon: Wrench, label: "Implementos", href: `${basePrefix}/implementos` },
         { icon: Package, label: "Inventario", href: `${basePrefix}/inventario` },
         { icon: ShoppingCart, label: "Punto de Venta", href: `${basePrefix}/ventas` },
         { icon: Calendar, label: "Clases", href: `${basePrefix}/clases` },
-        { icon: Clock, label: "Cronograma", href: `${basePrefix}/cronograma` },
         { icon: UserCircle, label: "Recepción", href: `${basePrefix}/recepcion` },
         { icon: ClipboardCheck, label: "Asistencia", href: `${basePrefix}/asistencia` },
+        { icon: MessageSquare, label: "Avisos Generales", href: `${basePrefix}/avisos` },
+        { icon: Clock, label: "Horarios", href: `${basePrefix}/horarios` },
         { icon: RefreshCw, label: "Sincronización", href: `${basePrefix}/sync` },
         { icon: BarChart3, label: "KPIs", href: `${basePrefix}/kpis` },
         { icon: FileText, label: "Reportes", href: `${basePrefix}/reportes` },
@@ -226,9 +229,10 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         { icon: LayoutDashboard, label: "Dashboard", href: `${basePrefix}/dashboard` },
         { icon: Users, label: "Socios", href: `${basePrefix}/socios` },
         { icon: Calendar, label: "Mis Clases", href: `${basePrefix}/clases` },
-        { icon: Clock, label: "Horario", href: `${basePrefix}/horario` },
         { icon: CalendarCheck, label: "Mis Sesiones", href: `${basePrefix}/sesiones` },
         { icon: RefreshCw, label: "Gestión Horario", href: `${basePrefix}/gestion-horario` },
+        { icon: MessageSquare, label: "Avisos", href: `${basePrefix}/avisos` },
+        { icon: Clock, label: "Horario Gimnasio", href: `${basePrefix}/horario` },
       ]
     } else {
       return [
@@ -238,6 +242,8 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         { icon: CalendarCheck, label: "Mis Sesiones", href: `${basePrefix}/sesiones` },
         { icon: UserCircle, label: "Entrenadores", href: `${basePrefix}/entrenadores` },
         { icon: CreditCard, label: "Pagos", href: `${basePrefix}/pagos` },
+        { icon: MessageSquare, label: "Avisos", href: `${basePrefix}/avisos` },
+        { icon: Clock, label: "Horarios", href: `${basePrefix}/horarios` },
       ]
     }
   }
@@ -256,7 +262,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 flex flex-col">
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform ${
@@ -326,7 +332,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div className={`transition-all ${sidebarOpen ? "lg:ml-64" : ""}`}>
+      <div className={`transition-all flex flex-col min-h-screen ${sidebarOpen ? "lg:ml-64" : ""}`}>
         {/* Top bar */}
         <header className="bg-background border-b sticky top-0 z-30">
           <div className="flex items-center justify-between p-4">
@@ -365,8 +371,12 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-6">{children}</main>
+        <main className="flex-1 p-6">{children}</main>
+
+        <Footer />
       </div>
     </div>
   )
 }
+
+export default DashboardLayout

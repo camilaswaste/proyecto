@@ -1,6 +1,21 @@
 "use client"
 
 import { DialogClose } from "@/components/ui/dialog"
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Edit,
+  Filter,
+  History,
+  QrCodeIcon,
+  Search,
+  Trash2,
+  UserPlus,
+  XCircle,
+} from "lucide-react"
 
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { MembershipModal } from "@/components/membership-modal"
@@ -13,20 +28,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  AlertCircle,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  CreditCard,
-  Edit,
-  Filter,
-  QrCodeIcon,
-  Search,
-  Trash2,
-  UserPlus,
-  XCircle,
-} from "lucide-react"
 import { useRouter } from "next/navigation"
 import type React from "react"
 import { useEffect, useState } from "react"
@@ -846,6 +847,15 @@ const AdminSociosPage = () => {
                           </td>
                           <td className="p-3">
                             <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => router.push(`/admin/socios/${socio.SocioID}/historial`)}
+                                className="hover:bg-purple-50 transition-colors"
+                                title="Ver historial de membresías"
+                              >
+                                <History className="h-4 w-4 text-purple-600" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"

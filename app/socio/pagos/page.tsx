@@ -73,9 +73,9 @@ export default function SocioPagosPage() {
   return (
     <DashboardLayout role="Socio">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Mis Comprobantes</h1>
-          <p className="text-muted-foreground">Consulta y descarga tus comprobantes de pago</p>
+        <div className="rounded-xl bg-white p-8 shadow-sm border-l-8 border-[#6712B1]">
+          <h1 className="text-3xl font-bold text-[#450B75]">Mis Comprobantes</h1>
+          <p className="text-[#450B75]">Consulta y descarga tus comprobantes de pago</p>
         </div>
 
         <Card>
