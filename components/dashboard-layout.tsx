@@ -236,7 +236,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       ]
     } else {
       return [
-        { icon: LayoutDashboard, label: "Dashboard", href: `${basePrefix}/dashboard` },
+        { icon: LayoutDashboard, label: "Home", href: `${basePrefix}/dashboard` },
         { icon: CreditCard, label: "Mi Membresía", href: `${basePrefix}/membresia` },
         { icon: Calendar, label: "Clases", href: `${basePrefix}/clases` },
         { icon: CalendarCheck, label: "Mis Sesiones", href: `${basePrefix}/sesiones` },
