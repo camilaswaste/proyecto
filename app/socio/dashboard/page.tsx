@@ -238,11 +238,11 @@ export default function SocioDashboardPage() {
 
       <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          <Card className="border border-slate-200 shadow-lg overflow-hidden">
+          <Card className="border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">
             <div className="h-1 bg-red-600" />
-            <CardHeader className="bg-slate-50 p-4 sm:p-6">
+            <CardHeader className="bg-slate-50 dark:bg-slate-800 p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl text-slate-900">
+                <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl text-slate-900 dark:text-slate-100">
                   <div className="p-1.5 sm:p-2 bg-red-600 rounded-lg shadow-sm">
                     <CreditCard className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
@@ -256,21 +256,25 @@ export default function SocioDashboardPage() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="pt-4 sm:pt-6 bg-white p-4 sm:p-6">
+            <CardContent className="pt-4 sm:pt-6 bg-card dark:bg-card p-4 sm:p-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-6">
-                <div className="text-center p-3 sm:p-4 rounded-lg bg-slate-100 border border-slate-300">
-                  <p className="text-xs sm:text-sm text-slate-700 font-medium mb-1">Plan Actual</p>
-                  <p className="text-xl sm:text-2xl font-bold text-slate-900">{membershipData?.plan || "Sin plan"}</p>
+                <div className="text-center p-3 sm:p-4 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600">
+                  <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium mb-1">Plan Actual</p>
+                  <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    {membershipData?.plan || "Sin plan"}
+                  </p>
                 </div>
-                <div className="text-center p-3 sm:p-4 rounded-lg bg-red-50 border border-red-300">
-                  <p className="text-xs sm:text-sm text-red-700 font-medium mb-1">Vence</p>
-                  <p className="text-base sm:text-lg font-bold text-red-900">
+                <div className="text-center p-3 sm:p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-800">
+                  <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 font-medium mb-1">Vence</p>
+                  <p className="text-base sm:text-lg font-bold text-red-900 dark:text-red-200">
                     {membershipData?.fechaVencimiento || "N/A"}
                   </p>
                 </div>
-                <div className="text-center p-3 sm:p-4 rounded-lg bg-emerald-50 border border-emerald-300">
-                  <p className="text-xs sm:text-sm text-emerald-700 font-medium mb-1">Días Restantes</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-emerald-900">
+                <div className="text-center p-3 sm:p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800">
+                  <p className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 font-medium mb-1">
+                    Días Restantes
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-bold text-emerald-900 dark:text-emerald-200">
                     {membershipData?.diasRestantes !== undefined ? membershipData.diasRestantes : "-"}
                   </p>
                 </div>
@@ -295,7 +299,7 @@ export default function SocioDashboardPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Link href="/socio/entrenadores">
-              <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 hover:border-red-400 group bg-white">
+              <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 dark:border-slate-700 hover:border-red-400 group bg-card dark:bg-card">
                 <CardContent className="p-4 sm:pt-6 flex items-center gap-3 sm:gap-4">
                   <div className="p-3 sm:p-4 bg-red-600 rounded-lg group-hover:bg-red-700 transition-all shadow-sm">
                     <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
@@ -311,7 +315,7 @@ export default function SocioDashboardPage() {
             </Link>
 
             <Link href="/socio/pagos">
-              <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 hover:border-slate-400 group bg-white">
+              <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 dark:border-slate-700 hover:border-slate-400 group bg-card dark:bg-card">
                 <CardContent className="p-4 sm:pt-6 flex items-center gap-3 sm:gap-4">
                   <div className="p-3 sm:p-4 bg-slate-700 rounded-lg group-hover:bg-slate-800 transition-all shadow-sm">
                     <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
@@ -327,7 +331,7 @@ export default function SocioDashboardPage() {
             </Link>
           </div>
 
-          <Card className="shadow-md border border-slate-200 bg-white">
+          <Card className="shadow-md border border-slate-200 dark:border-slate-700 bg-card dark:bg-card">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-xl text-slate-900">
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
@@ -337,7 +341,7 @@ export default function SocioDashboardPage() {
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-0">
               <div className="space-y-3">
-                <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-slate-200 rounded-lg bg-white hover:border-red-300 hover:bg-red-50/50 transition-all">
+                <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-card dark:bg-card hover:border-red-300 hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all">
                   <div className="flex flex-col items-center justify-center bg-red-600 text-white rounded-lg p-2 sm:p-3 min-w-[60px] sm:min-w-[70px] shadow-sm">
                     <span className="text-xl sm:text-2xl font-bold">22</span>
                     <span className="text-xs">ENE</span>
@@ -346,9 +350,11 @@ export default function SocioDashboardPage() {
                     <p className="font-bold text-base sm:text-lg text-slate-900">Sesión Personal</p>
                     <p className="text-xs sm:text-sm text-slate-600">11:00 AM - Con Pedro Martínez</p>
                   </div>
-                  <Badge className="bg-red-600 hover:bg-red-700 text-xs hidden sm:inline-flex">Confirmada</Badge>
+                  <Badge className="bg-card dark:bg-card text-red-600 dark:text-red-400 border-2 border-red-600 dark:border-red-500 text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 font-bold">
+                    Confirmada
+                  </Badge>
                 </div>
-                <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-slate-200 rounded-lg bg-white hover:border-slate-300 hover:bg-slate-50 transition-all">
+                <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-card dark:bg-card hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all">
                   <div className="flex flex-col items-center justify-center bg-slate-700 text-white rounded-lg p-2 sm:p-3 min-w-[60px] sm:min-w-[70px] shadow-sm">
                     <span className="text-xl sm:text-2xl font-bold">23</span>
                     <span className="text-xs">ENE</span>
@@ -357,7 +363,9 @@ export default function SocioDashboardPage() {
                     <p className="font-bold text-base sm:text-lg text-slate-900">Clase Funcional</p>
                     <p className="text-xs sm:text-sm text-slate-600">6:00 PM - Grupal</p>
                   </div>
-                  <Badge className="bg-slate-700 hover:bg-slate-800 text-xs hidden sm:inline-flex">Reservada</Badge>
+                  <Badge className="bg-card dark:bg-card text-red-600 dark:text-red-400 border-2 border-red-600 dark:border-red-500 text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 font-bold">
+                    Reservada
+                  </Badge>
                 </div>
               </div>
             </CardContent>
@@ -365,11 +373,11 @@ export default function SocioDashboardPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="border border-slate-200 shadow-lg lg:sticky lg:top-4 bg-white">
+          <Card className="border border-slate-200 dark:border-slate-700 shadow-lg lg:sticky lg:top-4 bg-card dark:bg-card">
             <div className="h-1 bg-red-600" />
-            <CardHeader className="bg-slate-50 pb-3 p-4 sm:p-6 sm:pb-3">
-              <CardTitle className="text-slate-900 text-lg sm:text-xl">Mundo Fitness</CardTitle>
-              <CardDescription className="text-slate-600 font-medium text-xs sm:text-sm">
+            <CardHeader className="bg-slate-50 dark:bg-slate-800 pb-3 p-4 sm:p-6 sm:pb-3">
+              <CardTitle className="text-slate-900 dark:text-slate-100 text-lg sm:text-xl">Mundo Fitness</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400 font-medium text-xs sm:text-sm">
                 Información de Contacto
               </CardDescription>
             </CardHeader>
@@ -378,51 +386,57 @@ export default function SocioDashboardPage() {
                 href="https://www.instagram.com/mundofitness_chimbarongo?igsh=MXByeW51ZjNxejU3eA=="
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-pink-50 hover:border-pink-300 transition-all group"
+                className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-pink-50 dark:hover:bg-pink-950/20 hover:border-pink-300 dark:hover:border-pink-800 transition-all group"
               >
                 <div className="p-2 bg-pink-600 rounded-lg shadow-sm">
                   <Instagram className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-pink-600">Instagram</p>
-                  <p className="text-xs text-slate-600 truncate">@mundofitness_chimbarongo</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-pink-600 group-hover:text-pink-600">
+                    Instagram
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-pink-300 truncate">@mundofitness_chimbarongo</p>
                 </div>
-                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-slate-400 group-hover:text-pink-600" />
+                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-slate-400 dark:text-pink-600 group-hover:text-pink-600" />
               </a>
 
               <a
                 href="https://maps.app.goo.gl/JAzpwyHFAyoPToLE7?g_st=aw"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-teal-50 hover:border-teal-300 transition-all group"
+                className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-300 dark:hover:border-teal-800 transition-all group"
               >
                 <div className="p-2 bg-teal-600 rounded-lg shadow-sm">
                   <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-teal-600">Ubicación</p>
-                  <p className="text-xs text-slate-600">Chimbarongo, Chile</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-teal-600 group-hover:text-teal-600">
+                    Ubicación
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-teal-300">Chimbarongo, Chile</p>
                 </div>
-                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-slate-400 group-hover:text-teal-600" />
+                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-slate-400 dark:text-teal-600 group-hover:text-teal-600" />
               </a>
 
               <a
                 href="mailto:mundofitnesschimbarongo08@gmail.com"
-                className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all group"
+                className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-950/20 hover:border-slate-300 dark:hover:border-slate-800 transition-all group"
               >
                 <div className="p-2 bg-slate-700 rounded-lg shadow-sm">
                   <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-slate-700">Email</p>
-                  <p className="text-xs text-slate-600 truncate">mundofitness...@gmail.com</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-700 group-hover:text-slate-700">
+                    Email
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 truncate">mundofitness...@gmail.com</p>
                 </div>
               </a>
 
               <Link href="/socio/horarios" className="block">
                 <Button
                   variant="outline"
-                  className="w-full justify-start border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 font-medium transition-all bg-transparent text-xs sm:text-sm py-4 sm:py-5"
+                  className="w-full justify-start border-2 border-slate-300 text-slate-700 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-950/20 hover:border-slate-400 dark:hover:border-slate-800 font-medium transition-all bg-transparent text-xs sm:text-sm py-4 sm:py-5"
                 >
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   Ver Horarios
@@ -443,7 +457,7 @@ export default function SocioDashboardPage() {
         >
           <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6" />
           <span className="text-sm sm:text-base">Avisos</span>
-          <Badge className="bg-white text-red-600 border-2 border-red-600 text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 font-bold">
+          <Badge className="bg-card dark:bg-card text-red-600 dark:text-red-400 border-2 border-red-600 dark:border-red-500 text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 font-bold">
             {avisosNoLeidos}
           </Badge>
         </button>
@@ -460,7 +474,10 @@ export default function SocioDashboardPage() {
           <div className="space-y-4 mt-4">
             {avisos.length > 0 ? (
               avisos.map((aviso) => (
-                <Card key={aviso.AvisoID} className="border-l-4 border-l-blue-500 border border-slate-200">
+                <Card
+                  key={aviso.AvisoID}
+                  className="border-l-4 border-l-blue-500 border border-slate-200 dark:border-slate-700"
+                >
                   <CardHeader>
                     <CardTitle className="text-base text-slate-900">{aviso.Titulo}</CardTitle>
                     <CardDescription>

@@ -335,16 +335,16 @@ export default function SocioMembresiaPage() {
   return (
     <DashboardLayout role="Socio">
       <div className="space-y-6">
-        <div className="rounded-xl bg-white p-8 shadow-sm border-l-8 border-[#454545]">
+        <div>
           <h1 className="text-3xl font-bold">Mi Membresía</h1>
           <p className="text-muted-foreground">Gestiona tu plan de membresía</p>
         </div>
 
         {currentMembership ? (
-          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
+          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/5 dark:via-purple-500/5 dark:to-pink-500/5" />
             <div className="relative">
-              <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
+              <CardHeader className="border-b bg-muted/50 dark:bg-muted/20 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-2xl">Membresía Actual</CardTitle>
@@ -363,7 +363,7 @@ export default function SocioMembresiaPage() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="pt-6 bg-white/60 backdrop-blur-sm">
+              <CardContent className="pt-6 bg-muted/30 dark:bg-muted/10 backdrop-blur-sm">
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Plan</p>
@@ -385,7 +385,7 @@ export default function SocioMembresiaPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                   {currentMembership.Estado === "Vigente" && (
                     <>
                       <Button
@@ -469,16 +469,19 @@ export default function SocioMembresiaPage() {
         )}
 
         {solicitudes.length > 0 && (
-          <Card className="border-purple-200 shadow-lg bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-            <CardHeader className="pb-4 border-b border-purple-100">
+          <Card className="border-purple-200 dark:border-purple-900 shadow-lg bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+            <CardHeader className="pb-4 border-b border-purple-100 dark:border-purple-900">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-purple-600" />
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   Mis Solicitudes
                 </CardTitle>
-                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+                <Badge
+                  variant="outline"
+                  className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
+                >
                   {solicitudes.filter((s) => s.Estado === "Pendiente").length} pendientes
                 </Badge>
               </div>
@@ -537,7 +540,7 @@ export default function SocioMembresiaPage() {
                         </div>
 
                         {solicitud.Estado === "Rechazada" && solicitud.MotivoRechazo && (
-                          <div className="flex items-start gap-2 mt-2 p-2 bg-red-100 rounded-md border border-red-200">
+                          <div className="flex items-start gap-2 mt-2 p-2 bg-red-100 rounded-md border border-red-200 dark:border-red-900">
                             <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
                             <p className="text-xs text-red-700">{solicitud.MotivoRechazo}</p>
                           </div>
@@ -580,7 +583,11 @@ export default function SocioMembresiaPage() {
                   key={plan.PlanID}
                   className={`relative cursor-pointer transition-all hover:shadow-lg ${
                     selectedPlan === plan.PlanID ? "border-primary shadow-lg ring-2 ring-primary/50" : ""
-                  } ${isCurrentPlan ? "opacity-60" : ""} ${isPromotion ? "border-orange-300 bg-gradient-to-br from-orange-50 to-yellow-50" : ""}`}
+                  } ${isCurrentPlan ? "opacity-60" : ""} ${
+                    isPromotion
+                      ? "border-orange-300 dark:border-orange-900 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950 dark:to-yellow-950"
+                      : "dark:bg-card"
+                  }`}
                   onClick={() => !isCurrentPlan && setSelectedPlan(plan.PlanID)}
                 >
                   {isCurrentPlan && (
@@ -593,29 +600,33 @@ export default function SocioMembresiaPage() {
 
                   {isPromotion && !isCurrentPlan && (
                     <div className="absolute -top-3 left-4 z-10">
-                      <Badge className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold shadow-lg">
+                      <Badge className="bg-gradient-to-r from-orange-500 to-yellow-500 dark:from-orange-600 dark:to-yellow-600 text-white font-bold shadow-lg">
                         <Sparkles className="h-3 w-3 mr-1" />
                         OFERTA
                       </Badge>
                     </div>
                   )}
 
-                  <CardHeader className={isPromotion ? "bg-white/50" : ""}>
+                  <CardHeader className={isPromotion ? "bg-muted/50 dark:bg-muted/20" : ""}>
                     <CardTitle className="text-center text-xl">{plan.NombrePlan}</CardTitle>
                     <CardDescription className="text-center">{plan.DuracionDias} días</CardDescription>
                   </CardHeader>
-                  <CardContent className={isPromotion ? "bg-white/60" : ""}>
+                  <CardContent className={isPromotion ? "bg-muted/30 dark:bg-muted/10" : ""}>
                     <div className="text-center mb-4">
                       {isPromotion ? (
                         <div className="space-y-1">
-                          <p className="text-xl line-through text-gray-400 font-medium">
+                          <p className="text-xl line-through text-gray-400 dark:text-gray-600 font-medium">
                             ${Math.round(plan.Precio * 1.15).toLocaleString()}
                           </p>
-                          <p className="text-3xl font-bold text-orange-600">${plan.Precio.toLocaleString()}</p>
-                          <p className="text-sm font-bold text-green-600">-15% OFF</p>
+                          <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                            ${plan.Precio.toLocaleString()}
+                          </p>
+                          <p className="text-sm font-bold text-green-600 dark:text-green-400">-15% OFF</p>
                         </div>
                       ) : (
-                        <p className="text-3xl font-bold text-gray-900">${plan.Precio.toLocaleString()}</p>
+                        <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                          ${plan.Precio.toLocaleString()}
+                        </p>
                       )}
                     </div>
                     {beneficios.length > 0 && (
@@ -623,9 +634,9 @@ export default function SocioMembresiaPage() {
                         {beneficios.map((beneficio, index) => (
                           <li key={index} className="flex items-start gap-2 text-sm">
                             <Check
-                              className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isPromotion ? "text-orange-600" : "text-green-600"}`}
+                              className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isPromotion ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400"}`}
                             />
-                            <span className="text-gray-700">{beneficio.trim()}</span>
+                            <span className="text-gray-700 dark:text-gray-300">{beneficio.trim()}</span>
                           </li>
                         ))}
                       </ul>
@@ -659,7 +670,7 @@ export default function SocioMembresiaPage() {
 
             {confirmedAction === "Pausar" && currentMembership && (
               <div className="space-y-4">
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="bg-card dark:bg-card rounded p-4 border border-orange-200 dark:border-orange-900">
                   <h4 className="font-semibold text-sm mb-2 text-orange-900">Suspensión de Membresía</h4>
                   <ul className="text-sm space-y-2 text-orange-800">
                     <li className="flex items-start gap-2">
@@ -689,7 +700,7 @@ export default function SocioMembresiaPage() {
                   const condiciones = getCancelacionCondiciones(currentMembership.NombrePlan)
                   return (
                     <>
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="bg-card dark:bg-card border border-red-100 dark:border-red-900 rounded-lg p-4">
                         <h4 className="font-semibold text-sm mb-3 text-red-900">
                           Condiciones de Cancelación - {currentMembership.NombrePlan}
                         </h4>
@@ -709,12 +720,12 @@ export default function SocioMembresiaPage() {
                           </div>
                         </div>
 
-                        <div className="bg-white rounded p-3 border border-red-100">
+                        <div className="bg-white rounded p-3 border border-red-100 dark:border-red-900">
                           <p className="text-sm text-red-800">{condiciones.info}</p>
                         </div>
                       </div>
 
-                      <div className="bg-muted p-3 rounded-lg">
+                      <div className="bg-card dark:bg-card p-3 rounded-lg">
                         <p className="text-sm text-muted-foreground">
                           Tu membresía:{" "}
                           <span className="font-semibold text-foreground">{currentMembership.NombrePlan}</span>
@@ -727,7 +738,7 @@ export default function SocioMembresiaPage() {
                         </p>
                       </div>
 
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                      <div className="bg-card dark:bg-card rounded-lg p-3 border border-orange-100 dark:border-orange-900">
                         <p className="text-sm text-orange-800 font-medium flex items-start gap-2">
                           <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                           Esta acción es definitiva y puede tener consecuencias financieras
@@ -741,7 +752,7 @@ export default function SocioMembresiaPage() {
 
             {confirmedAction === "Activar" && currentMembership && (
               <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-card dark:bg-card border border-green-200 dark:border-green-900 rounded-lg p-4">
                   <h4 className="font-semibold text-sm mb-2 text-green-900">Reactivación de Membresía</h4>
                   <ul className="text-sm space-y-2 text-green-800">
                     <li className="flex items-start gap-2">
@@ -759,7 +770,7 @@ export default function SocioMembresiaPage() {
                   </ul>
                 </div>
 
-                <div className="bg-muted p-3 rounded-lg">
+                <div className="bg-card dark:bg-card p-3 rounded-lg">
                   <p className="text-sm text-muted-foreground">
                     Tu membresía: <span className="font-semibold text-foreground">{currentMembership.NombrePlan}</span>
                   </p>
@@ -769,11 +780,11 @@ export default function SocioMembresiaPage() {
 
             {confirmedAction === "Cambiar" && currentMembership && (
               <div className="space-y-4">
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="bg-card dark:bg-card border border-purple-200 dark:border-purple-900 rounded-lg p-4">
                   <h4 className="font-semibold text-sm mb-3 text-purple-900">Condiciones de Cambio de Membresía</h4>
 
                   <div className="space-y-3">
-                    <div className="bg-white rounded-lg p-3 border border-purple-100">
+                    <div className="bg-white rounded-lg p-3 border border-purple-100 dark:border-purple-900">
                       <p className="font-semibold text-xs text-purple-900 mb-2">Upgrade (Mejorar Plan)</p>
                       <ul className="text-xs space-y-1 text-purple-800">
                         <li className="flex items-start gap-2">
@@ -787,7 +798,7 @@ export default function SocioMembresiaPage() {
                       </ul>
                     </div>
 
-                    <div className="bg-white rounded-lg p-3 border border-purple-100">
+                    <div className="bg-white rounded-lg p-3 border border-purple-100 dark:border-purple-900">
                       <p className="font-semibold text-xs text-purple-900 mb-2">Downgrade (Reducir Plan)</p>
                       <ul className="text-xs space-y-1 text-purple-800">
                         <li className="flex items-start gap-2">
@@ -801,7 +812,7 @@ export default function SocioMembresiaPage() {
                       </ul>
                     </div>
 
-                    <div className="bg-white rounded-lg p-3 border border-purple-100">
+                    <div className="bg-white rounded-lg p-3 border border-purple-100 dark:border-purple-900">
                       <p className="font-semibold text-xs text-purple-900 mb-2">Cambio en Promoción</p>
                       <ul className="text-xs space-y-1 text-purple-800">
                         <li className="flex items-start gap-2">
@@ -815,7 +826,7 @@ export default function SocioMembresiaPage() {
                       </ul>
                     </div>
 
-                    <div className="bg-white rounded-lg p-3 border border-purple-100">
+                    <div className="bg-white rounded-lg p-3 border border-purple-100 dark:border-purple-900">
                       <p className="font-semibold text-xs text-purple-900 mb-2">Cambio por Fuerza Mayor</p>
                       <ul className="text-xs space-y-1 text-purple-800">
                         <li className="flex items-start gap-2">
@@ -831,7 +842,7 @@ export default function SocioMembresiaPage() {
 
             {confirmedAction === "Reanudar" && (
               <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-card dark:bg-card border border-green-200 dark:border-green-900 rounded-lg p-4">
                   <h4 className="font-semibold text-sm mb-2 text-green-900">Reanudación de Membresía</h4>
                   <ul className="text-sm space-y-2 text-green-800">
                     <li className="flex items-start gap-2">
@@ -853,7 +864,7 @@ export default function SocioMembresiaPage() {
 
             {confirmedAction === "Asignar" && (
               <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-card dark:bg-card border border-blue-200 dark:border-blue-900 rounded-lg p-4">
                   <h4 className="font-semibold text-sm mb-2 text-blue-900">Asignación de Nueva Membresía</h4>
                   <ul className="text-sm space-y-2 text-blue-800">
                     <li className="flex items-start gap-2">
