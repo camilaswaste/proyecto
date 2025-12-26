@@ -17,24 +17,30 @@ export default function RecuperarPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("[v0] Formulario enviado, email:", email)
     setLoading(true)
     setError("")
 
     try {
+      console.log("[v0] Llamando a /api/auth/forgot-password...")
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       })
 
+      console.log("[v0] Respuesta recibida, status:", res.status)
       const data = await res.json()
+      console.log("[v0] Data:", data)
 
       if (!res.ok) {
         throw new Error(data.error || "Error al enviar solicitud")
       }
 
+      console.log("[v0] Email enviado exitosamente")
       setSuccess(true)
     } catch (err: any) {
+      console.error("[v0] Error:", err)
       setError(err.message || "Error al procesar la solicitud")
     } finally {
       setLoading(false)
