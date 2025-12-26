@@ -1,32 +1,31 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect, useMemo } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs" // 'TabsContent' se usará de forma diferente
-import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // 'TabsContent' se usará de forma diferente
 import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  Cookie,
+  Droplet,
+  Dumbbell,
+  Edit,
+  Package,
+  Pill,
   Plus,
   Search,
-  Edit,
   Trash2,
-  AlertTriangle,
-  Package,
-  Droplet,
-  Pill,
-  Cookie,
-  Dumbbell,
   Wrench,
-  ArrowUp,
-  ArrowDown,
-  ChevronDown,
 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type React from "react"
+import { useEffect, useMemo, useState } from "react"
 
 interface Categoria {
   CategoriaID: number
@@ -477,7 +476,9 @@ export default function AdminInventarioPage() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProducto ? "Editar Producto" : "Nuevo Producto"}</DialogTitle>
-              <DialogClose />
+              <DialogClose onClose={function (): void {
+                throw new Error("Function not implemented.")
+              } } />
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

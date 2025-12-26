@@ -1,11 +1,25 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText } from "lucide-react"
-import Link from "next/link"
+import { ArrowLeft, FileText } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function TerminosPage() {
+  const router = useRouter()
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+      <Button
+        onClick={() => router.back()}
+        variant="outline"
+        size="icon"
+        className="fixed top-4 left-4 z-50 bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-shadow"
+        aria-label="Volver atrás"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+
       <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white py-16">
         <div className="max-w-4xl mx-auto px-6">
           <h1 className="text-4xl font-bold mb-4">Términos y Condiciones</h1>
@@ -155,12 +169,6 @@ export default function TerminosPage() {
             </p>
           </CardContent>
         </Card>
-
-        <div className="flex justify-center pt-4">
-          <Link href="/login">
-            <Button variant="outline">Volver al Inicio</Button>
-          </Link>
-        </div>
 
         <p className="text-center text-sm text-slate-500 pt-4">
           Última actualización: {new Date().toLocaleDateString("es-CL")}

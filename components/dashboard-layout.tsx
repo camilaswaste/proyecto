@@ -1,42 +1,21 @@
 "use client"
+import { getNavItems } from "@/lib/nav-items"; // Import getNavItems
+import Image from "next/image";
+import type React from "react";
 
-import { CalendarCheck, MessageSquare, RefreshCw, Wrench } from "lucide-react"
-import Image from "next/image"
-import type React from "react"
+import { Footer } from "@/components/footer";
+import { NotificationsDropdown } from "@/components/notifications-dropdown";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import type { User as UserType } from "@/lib/auth-client";
+import { getUser, logout } from "@/lib/auth-client";
 
-import { Footer } from "@/components/footer"
-import { NotificationsDropdown } from "@/components/notifications-dropdown"
-import { Button } from "@/components/ui/button"
-import { toast } from "@/hooks/use-toast"
-import type { User as UserType } from "@/lib/auth-client"
-import { getUser, logout } from "@/lib/auth-client"
-import { FileText, ShoppingCart } from "lucide-react"
+import { AlertCircle, CheckCircle2, Dumbbell, LogOut, Menu, Moon, Settings, Sun, User, X } from "lucide-react";
 
-import {
-  AlertCircle,
-  BarChart3,
-  Calendar,
-  CheckCircle2,
-  ClipboardCheck,
-  Clock,
-  CreditCard,
-  Dumbbell,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Moon,
-  Package,
-  Settings,
-  Sun,
-  User,
-  UserCircle,
-  Users,
-  X
-} from "lucide-react"
-
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useTheme } from "@/lib/theme-provider";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -48,8 +27,24 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<UserType | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [isDark, setIsDark] = useState(false)
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === "dark"
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false)
+      }
+    }
+
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false)
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [pathname])
 
   // Validación de sesión
   useEffect(() => {
@@ -170,85 +165,14 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
     logout()
   }
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme")
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-    const shouldBeDark = savedTheme === "dark" || (!savedTheme && prefersDark)
-
-    setIsDark(shouldBeDark)
-    if (shouldBeDark) {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-    }
-  }, [])
-
-  const toggleTheme = () => {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-
-    if (newTheme) {
-      document.documentElement.classList.add("dark")
-      localStorage.setItem("theme", "dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-      localStorage.setItem("theme", "light")
-    }
-  }
+  // Navigation items based on role
   const getRolePrefix = () => {
     if (role === "Administrador") return "/admin"
     if (role === "Entrenador") return "/entrenador"
     return "/socio"
   }
 
-  // Navigation items based on role
-  const getNavItems = () => {
-    const basePrefix = getRolePrefix()
-
-    if (role === "Administrador") {
-      return [
-        { icon: LayoutDashboard, label: "Dashboard", href: `${basePrefix}/dashboard` },
-        { icon: Users, label: "Socios", href: `${basePrefix}/socios` },
-        { icon: CreditCard, label: "Membresías", href: `${basePrefix}/membresias` },
-        { icon: CreditCard, label: "Pagos", href: `${basePrefix}/pagos` },
-        { icon: UserCircle, label: "Entrenadores", href: `${basePrefix}/entrenadores` },
-        { icon: Wrench, label: "Implementos", href: `${basePrefix}/implementos` },
-        { icon: Package, label: "Inventario", href: `${basePrefix}/inventario` },
-        { icon: ShoppingCart, label: "Punto de Venta", href: `${basePrefix}/ventas` },
-        { icon: Calendar, label: "Clases", href: `${basePrefix}/clases` },
-        { icon: UserCircle, label: "Recepción", href: `${basePrefix}/recepcion` },
-        { icon: ClipboardCheck, label: "Asistencia", href: `${basePrefix}/asistencia` },
-        { icon: MessageSquare, label: "Avisos Generales", href: `${basePrefix}/avisos` },
-        { icon: Clock, label: "Horarios", href: `${basePrefix}/horarios` },
-        { icon: RefreshCw, label: "Sincronización", href: `${basePrefix}/sync` },
-        { icon: BarChart3, label: "KPIs", href: `${basePrefix}/kpis` },
-        { icon: FileText, label: "Reportes", href: `${basePrefix}/reportes` },
-      ]
-    } else if (role === "Entrenador") {
-      return [
-        { icon: LayoutDashboard, label: "Dashboard", href: `${basePrefix}/dashboard` },
-        { icon: Users, label: "Socios", href: `${basePrefix}/socios` },
-        { icon: Calendar, label: "Mis Clases", href: `${basePrefix}/clases` },
-        { icon: CalendarCheck, label: "Mis Sesiones", href: `${basePrefix}/sesiones` },
-        { icon: RefreshCw, label: "Gestión Horario", href: `${basePrefix}/gestion-horario` },
-        { icon: MessageSquare, label: "Avisos", href: `${basePrefix}/avisos` },
-        { icon: Clock, label: "Horario Gimnasio", href: `${basePrefix}/horario` },
-      ]
-    } else {
-      return [
-        { icon: LayoutDashboard, label: "Home", href: `${basePrefix}/dashboard` },
-        { icon: CreditCard, label: "Mi Membresía", href: `${basePrefix}/membresia` },
-        { icon: Calendar, label: "Clases", href: `${basePrefix}/clases` },
-        { icon: CalendarCheck, label: "Mis Sesiones", href: `${basePrefix}/sesiones` },
-        { icon: UserCircle, label: "Entrenadores", href: `${basePrefix}/entrenadores` },
-        { icon: CreditCard, label: "Pagos", href: `${basePrefix}/pagos` },
-        { icon: MessageSquare, label: "Avisos", href: `${basePrefix}/avisos` },
-        { icon: Clock, label: "Horarios", href: `${basePrefix}/horarios` },
-      ]
-    }
-  }
-
-  const navItems = getNavItems()
+  const navItems = getNavItems(role) // Use getNavItems with role parameter
 
   if (!user) {
     return (
@@ -263,6 +187,14 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform ${

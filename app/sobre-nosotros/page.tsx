@@ -1,11 +1,27 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Award, Building2, Eye, Target, Users } from "lucide-react"
+"use client"
+
 import Link from "next/link"
 
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Award, Building2, Eye, Target, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+
 export default function SobreNosotrosPage() {
+  const router = useRouter()
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+      <Button
+        onClick={() => router.back()}
+        variant="outline"
+        size="icon"
+        className="fixed top-4 left-4 z-50 bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-shadow"
+        aria-label="Volver atrás"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+
       {/* Header */}
       <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white py-16">
         <div className="max-w-4xl mx-auto px-6">

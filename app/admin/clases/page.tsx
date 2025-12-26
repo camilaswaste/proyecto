@@ -1,29 +1,29 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useRouter } from "next/navigation"
 import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
+  Brain,
   CalendarIcon,
-  Users,
   Clock,
   Dumbbell,
+  Edit,
   Heart,
-  Brain,
   Music,
+  Plus,
+  Search,
   Sword,
+  Trash2,
   TrendingUp,
+  Users,
 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
+import React, { useEffect, useMemo, useState } from "react"
 
 interface Clase {
   ClaseID: number
@@ -716,7 +716,7 @@ export default function AdminClasesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-muted">
                     <tr>

@@ -1,18 +1,28 @@
-// app/entrenador/socios/page.tsx
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 // Importar iconos necesarios
-import { Search, QrCodeIcon, Filter, ChevronLeft, ChevronRight, Eye, Users, Calendar, CheckCircle, XCircle } from "lucide-react"
 import { QrCodeQuickChart } from "@/components/QrCodeQuickChart"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getUser } from "@/lib/auth-client" 
+import { getUser } from "@/lib/auth-client"
+import {
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Filter,
+  QrCodeIcon,
+  Search,
+  Users,
+  XCircle,
+} from "lucide-react"
 
 // Interfaz de Socio
 interface Socio {
@@ -22,15 +32,15 @@ interface Socio {
   Apellido: string
   Email: string
   Telefono: string
-  FechaNacimiento?: string 
-  Direccion?: string 
+  FechaNacimiento?: string
+  Direccion?: string
   EstadoSocio: string
   CodigoQR: string
   NombrePlan: string | null
   EstadoMembresia: string | null
-  FechaInicio: string | null 
-  FechaFin: string | null 
-  TotalSesiones?: number 
+  FechaInicio: string | null
+  FechaFin: string | null
+  TotalSesiones?: number
 }
 
 // Nueva Interfaz para los KPIs del Entrenador
@@ -43,12 +53,12 @@ interface EntrenadorKPIs {
 
 export default function EntrenadorSociosPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [socios, setSocios] = useState<Socio[]>([]) 
+  const [socios, setSocios] = useState<Socio[]>([])
   const [loading, setLoading] = useState(true)
   const [filterEstadoMembresia, setFilterEstadoMembresia] = useState<string>("todos")
   // Nuevo estado para los KPIs
-  const [kpis, setKpis] = useState<EntrenadorKPIs | null>(null) 
-  
+  const [kpis, setKpis] = useState<EntrenadorKPIs | null>(null)
+
   // Estado para paginación
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
@@ -81,51 +91,50 @@ export default function EntrenadorSociosPage() {
       }
       const profileData = await profileResponse.json()
       const entrenadorID = profileData.EntrenadorID
-      
+
       if (!entrenadorID) {
-          console.error("No EntrenadorID found in profile")
-          setLoading(false)
-          return
+        console.error("No EntrenadorID found in profile")
+        setLoading(false)
+        return
       }
 
       // 2. Obtener Socios del Entrenador
       const response = await fetch(`/api/entrenador/socios?entrenadorID=${entrenadorID}`)
       if (response.ok) {
         const data = await response.json()
-        
+
         // 1. Validar y extraer los arrays y KPIs del objeto de respuesta
         const todosSocios = Array.isArray(data.todosSocios) ? data.todosSocios : []
         const sociosConSesiones = Array.isArray(data.sociosConSesiones) ? data.sociosConSesiones : []
         setKpis(data.kpis as EntrenadorKPIs) // Establecer los KPIs
-        
+
         // 2. Combinar los arrays en una única lista, deduplicando por SocioID
-        const combinedSociosMap = new Map<number, Socio>();
-        
+        const combinedSociosMap = new Map<number, Socio>()
+
         // Procesamos primero 'todosSocios' (datos base + membresía)
         todosSocios.forEach((socio: Socio) => {
-            combinedSociosMap.set(socio.SocioID, socio);
-        });
-        
+          combinedSociosMap.set(socio.SocioID, socio)
+        })
+
         // Luego procesamos 'sociosConSesiones' y fusionamos la data
-        sociosConSesiones.forEach((socio: { SocioID: number, TotalSesiones: number }) => {
-            const existing = combinedSociosMap.get(socio.SocioID);
-            if (existing) {
-                // Fusiona la data de sesiones (ej. TotalSesiones)
-                combinedSociosMap.set(socio.SocioID, { ...existing, TotalSesiones: socio.TotalSesiones });
-            } else {
-                // Si está en sesiones pero no en la lista general, lo añadimos de todas formas (aunque debería estar)
-                combinedSociosMap.set(socio.SocioID, socio as unknown as Socio);
-            }
-        });
-        
-        setSocios(Array.from(combinedSociosMap.values()));
-        
+        sociosConSesiones.forEach((socio: { SocioID: number; TotalSesiones: number }) => {
+          const existing = combinedSociosMap.get(socio.SocioID)
+          if (existing) {
+            // Fusiona la data de sesiones (ej. TotalSesiones)
+            combinedSociosMap.set(socio.SocioID, { ...existing, TotalSesiones: socio.TotalSesiones })
+          } else {
+            // Si está en sesiones pero no en la lista general, lo añadimos de todas formas (aunque debería estar)
+            combinedSociosMap.set(socio.SocioID, socio as unknown as Socio)
+          }
+        })
+
+        setSocios(Array.from(combinedSociosMap.values()))
       } else {
         console.error("Failed to fetch socios:", await response.text())
       }
     } catch (error) {
       console.error("Error al cargar socios:", error)
-      setSocios([]) 
+      setSocios([])
     } finally {
       setLoading(false)
     }
@@ -142,7 +151,7 @@ export default function EntrenadorSociosPage() {
   }
 
   // Lógica de Filtrado: Uso de una referencia defensiva
-  const sociosToFilter = Array.isArray(socios) ? socios : []; 
+  const sociosToFilter = Array.isArray(socios) ? socios : []
 
   const filteredSocios = sociosToFilter.filter((socio) => {
     const matchesSearch =
@@ -153,7 +162,7 @@ export default function EntrenadorSociosPage() {
     const matchesEstado =
       filterEstadoMembresia === "todos" ||
       socio.EstadoMembresia === filterEstadoMembresia ||
-      (filterEstadoMembresia === "sin-plan" && (!socio.EstadoMembresia || socio.EstadoMembresia !== 'Vigente')) // Modificado para incluir socios con plan no vigente en "sin-plan"
+      (filterEstadoMembresia === "sin-plan" && (!socio.EstadoMembresia || socio.EstadoMembresia !== "Vigente")) // Modificado para incluir socios con plan no vigente en "sin-plan"
 
     return matchesSearch && matchesEstado
   })
@@ -173,8 +182,8 @@ export default function EntrenadorSociosPage() {
     if (!dateString) return "N/A"
     try {
       // Formato DD/MM/AAAA
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-CL', { timeZone: 'UTC' }); 
+      const date = new Date(dateString)
+      return date.toLocaleDateString("es-CL", { timeZone: "UTC" })
     } catch {
       return "Error"
     }
@@ -204,12 +213,11 @@ export default function EntrenadorSociosPage() {
     const cleanPhone = telefono.replace(/\D/g, "")
     // Asumiendo formato chileno (9 dígitos después del +569)
     if (cleanPhone.length >= 8) {
-      const number = cleanPhone.slice(-8); // Tomar los últimos 8
-      return `+56 9 ${number.slice(0, 4)} ${number.slice(4)}`;
+      const number = cleanPhone.slice(-8) // Tomar los últimos 8
+      return `+56 9 ${number.slice(0, 4)} ${number.slice(4)}`
     }
     return telefono
   }
-
 
   const getEstadoMembresiaColor = (estado: string | null) => {
     switch (estado) {
@@ -245,9 +253,7 @@ export default function EntrenadorSociosPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Mis Socios Asignados</h1>
-            <p className="text-muted-foreground">
-              Lista de socios que tienen reservas en tus clases.
-            </p>
+            <p className="text-muted-foreground">Lista de socios que tienen reservas en tus clases.</p>
           </div>
         </div>
 
@@ -265,7 +271,7 @@ export default function EntrenadorSociosPage() {
                 <p className="text-xs text-muted-foreground">Socios vinculados a tus clases</p>
               </CardContent>
             </Card>
-            
+
             {/* KPI 2: Total Reservas Clases */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -289,7 +295,7 @@ export default function EntrenadorSociosPage() {
                 <p className="text-xs text-muted-foreground">Socios con un plan activo</p>
               </CardContent>
             </Card>
-            
+
             {/* KPI 4: Socios sin Plan Vigente */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -304,7 +310,6 @@ export default function EntrenadorSociosPage() {
           </div>
         )}
         {/* Fin Sección de KPIs */}
-
 
         <Card>
           <CardHeader>
@@ -343,93 +348,95 @@ export default function EntrenadorSociosPage() {
               </div>
 
               <div className="border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="text-left p-3 font-medium">RUT</th>
-                      <th className="text-left p-3 font-medium">Nombre</th>
-                      <th className="text-left p-3 font-medium">Email</th>
-                      <th className="text-left p-3 font-medium">Plan/Estado</th>
-                      <th className="text-left p-3 font-medium">Fin Plan</th>
-                      <th className="text-left p-3 font-medium">Teléfono</th>
-                      <th className="text-left p-3 font-medium">Estado Socio</th>
-                      <th className="text-left p-3 font-medium">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedSocios.length === 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted">
                       <tr>
-                        <td colSpan={8} className="p-8 text-center text-muted-foreground">
-                          No se encontraron socios
-                        </td>
+                        <th className="text-left p-3 font-medium">RUT</th>
+                        <th className="text-left p-3 font-medium">Nombre</th>
+                        <th className="text-left p-3 font-medium">Email</th>
+                        <th className="text-left p-3 font-medium">Plan/Estado</th>
+                        <th className="text-left p-3 font-medium">Fin Plan</th>
+                        <th className="text-left p-3 font-medium">Teléfono</th>
+                        <th className="text-left p-3 font-medium">Estado Socio</th>
+                        <th className="text-left p-3 font-medium">Acciones</th>
                       </tr>
-                    ) : (
-                      paginatedSocios.map((socio) => (
-                        <tr key={socio.SocioID} className="border-t hover:bg-muted/50 transition-colors">
-                          <td className="p-3 font-mono text-sm">{formatRUT(socio.RUT)}</td>
-                          <td className="p-3">
-                            {socio.Nombre} {socio.Apellido}
-                          </td>
-                          <td className="p-3 text-sm">{socio.Email}</td>
-                          <td className="p-3">
-                            <p className="font-medium text-sm">{socio.NombrePlan || "Sin Plan"}</p>
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium border ${getEstadoMembresiaColor(
-                                socio.EstadoMembresia,
-                              )}`}
-                            >
-                              {socio.EstadoMembresia || "N/A"}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <p className="text-sm">{formatDate(socio.FechaFin)}</p>
-                          </td>
-                          <td className="p-3 text-sm font-mono">{formatTelefono(socio.Telefono)}</td>
-                          <td className="p-3">
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                socio.EstadoSocio === "Activo"
-                                  ? "bg-green-100 text-green-800"
-                                  : socio.EstadoSocio === "Moroso"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}
-                            >
-                              {socio.EstadoSocio}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex gap-2">
-                              {/* Acción: Ver Perfil */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleViewProfile(socio.SocioID)}
-                                className="hover:bg-blue-50 transition-colors"
-                                title="Ver Perfil del Socio"
-                              >
-                                <Eye className="h-4 w-4 text-blue-600" />
-                              </Button>
-
-                              {/* Acción: Código QR */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenQrDialog(socio)}
-                                disabled={!socio.CodigoQR}
-                                title="Ver Código QR de Acceso"
-                              >
-                                <QrCodeIcon
-                                  className={`h-4 w-4 ${socio.CodigoQR ? "text-primary" : "text-muted-foreground"}`}
-                                />
-                              </Button>
-                            </div>
+                    </thead>
+                    <tbody>
+                      {paginatedSocios.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                            No se encontraron socios
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        paginatedSocios.map((socio) => (
+                          <tr key={socio.SocioID} className="border-t hover:bg-muted/50 transition-colors">
+                            <td className="p-3 font-mono text-sm">{formatRUT(socio.RUT)}</td>
+                            <td className="p-3">
+                              {socio.Nombre} {socio.Apellido}
+                            </td>
+                            <td className="p-3 text-sm">{socio.Email}</td>
+                            <td className="p-3">
+                              <p className="font-medium text-sm">{socio.NombrePlan || "Sin Plan"}</p>
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium border ${getEstadoMembresiaColor(
+                                  socio.EstadoMembresia,
+                                )}`}
+                              >
+                                {socio.EstadoMembresia || "N/A"}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <p className="text-sm">{formatDate(socio.FechaFin)}</p>
+                            </td>
+                            <td className="p-3 text-sm font-mono">{formatTelefono(socio.Telefono)}</td>
+                            <td className="p-3">
+                              <span
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  socio.EstadoSocio === "Activo"
+                                    ? "bg-green-100 text-green-800"
+                                    : socio.EstadoSocio === "Moroso"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                }`}
+                              >
+                                {socio.EstadoSocio}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-2">
+                                {/* Acción: Ver Perfil */}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleViewProfile(socio.SocioID)}
+                                  className="hover:bg-blue-50 transition-colors"
+                                  title="Ver Perfil del Socio"
+                                >
+                                  <Eye className="h-4 w-4 text-blue-600" />
+                                </Button>
+
+                                {/* Acción: Código QR */}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenQrDialog(socio)}
+                                  disabled={!socio.CodigoQR}
+                                  title="Ver Código QR de Acceso"
+                                >
+                                  <QrCodeIcon
+                                    className={`h-4 w-4 ${socio.CodigoQR ? "text-primary" : "text-muted-foreground"}`}
+                                  />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Paginación */}

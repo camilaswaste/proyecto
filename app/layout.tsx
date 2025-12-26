@@ -42,16 +42,6 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#ef4444" />
         <link rel="manifest" href="/manifest.json" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const theme = localStorage.getItem('theme') || 'light';
-                document.documentElement.classList.add(theme);
-              } catch (e) {}
-            `,
-          }}
-        />
       </head>
       <body className={`font-sans antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>

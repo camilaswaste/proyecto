@@ -775,109 +775,111 @@ const AdminSociosPage = () => {
               </div>
 
               <div className="border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="text-left p-3 font-medium">RUT</th>
-                      <th className="text-left p-3 font-medium">Nombre</th>
-                      <th className="text-left p-3 font-medium">Email</th>
-                      <th className="text-left p-3 font-medium">Plan/Estado</th>
-                      <th className="text-left p-3 font-medium">Inicio Plan</th>
-                      <th className="text-left p-3 font-medium">Fin Plan</th>
-                      <th className="text-left p-3 font-medium">Teléfono</th>
-                      <th className="text-left p-3 font-medium">Estado</th>
-                      <th className="text-left p-3 font-medium">QR</th>
-                      <th className="text-left p-3 font-medium">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedSocios.length === 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted">
                       <tr>
-                        <td colSpan={10} className="p-8 text-center text-muted-foreground">
-                          No se encontraron socios
-                        </td>
+                        <th className="text-left p-3 font-medium">RUT</th>
+                        <th className="text-left p-3 font-medium">Nombre</th>
+                        <th className="text-left p-3 font-medium">Email</th>
+                        <th className="text-left p-3 font-medium">Plan/Estado</th>
+                        <th className="text-left p-3 font-medium">Inicio Plan</th>
+                        <th className="text-left p-3 font-medium">Fin Plan</th>
+                        <th className="text-left p-3 font-medium">Teléfono</th>
+                        <th className="text-left p-3 font-medium">Estado</th>
+                        <th className="text-left p-3 font-medium">QR</th>
+                        <th className="text-left p-3 font-medium">Acciones</th>
                       </tr>
-                    ) : (
-                      paginatedSocios.map((socio) => (
-                        <tr key={socio.SocioID} className="border-t hover:bg-muted/50 transition-colors">
-                          <td className="p-3 font-mono text-sm">{formatRUT(socio.RUT)}</td>
-                          <td className="p-3">
-                            {socio.Nombre} {socio.Apellido}
-                          </td>
-                          <td className="p-3 text-sm">{socio.Email}</td>
-                          <td className="p-3">
-                            <p className="font-medium text-sm">{socio.NombrePlan || "Sin Plan"}</p>
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium border ${getEstadoMembresiaColor(
-                                socio.EstadoMembresia,
-                              )}`}
-                            >
-                              {socio.EstadoMembresia || "N/A"}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <p className="text-sm">{formatDate(socio.FechaInicio)}</p>
-                          </td>
-                          <td className="p-3">
-                            <p className="text-sm">{formatDate(socio.FechaFin)}</p>
-                          </td>
-                          <td className="p-3 text-sm font-mono">{formatTelefono(socio.Telefono)}</td>
-                          <td className="p-3">
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                socio.EstadoSocio === "Activo"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {socio.EstadoSocio}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenQrDialog(socio)}
-                              disabled={!socio.CodigoQR}
-                            >
-                              <QrCodeIcon
-                                className={`h-4 w-4 ${socio.CodigoQR ? "text-primary" : "text-muted-foreground"}`}
-                              />
-                            </Button>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => router.push(`/admin/socios/${socio.SocioID}/historial`)}
-                                className="hover:bg-purple-50 transition-colors"
-                                title="Ver historial de membresías"
-                              >
-                                <History className="h-4 w-4 text-purple-600" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenMembresiaDialog(socio)}
-                                className="hover:bg-blue-50 transition-colors"
-                                title="Gestionar membresía"
-                              >
-                                <CreditCard className="h-4 w-4 text-blue-600" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(socio)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDelete(socio.SocioID)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
+                    </thead>
+                    <tbody>
+                      {paginatedSocios.length === 0 ? (
+                        <tr>
+                          <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                            No se encontraron socios
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        paginatedSocios.map((socio) => (
+                          <tr key={socio.SocioID} className="border-t hover:bg-muted/50 transition-colors">
+                            <td className="p-3 font-mono text-sm">{formatRUT(socio.RUT)}</td>
+                            <td className="p-3">
+                              {socio.Nombre} {socio.Apellido}
+                            </td>
+                            <td className="p-3 text-sm">{socio.Email}</td>
+                            <td className="p-3">
+                              <p className="font-medium text-sm">{socio.NombrePlan || "Sin Plan"}</p>
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium border ${getEstadoMembresiaColor(
+                                  socio.EstadoMembresia,
+                                )}`}
+                              >
+                                {socio.EstadoMembresia || "N/A"}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <p className="text-sm">{formatDate(socio.FechaInicio)}</p>
+                            </td>
+                            <td className="p-3">
+                              <p className="text-sm">{formatDate(socio.FechaFin)}</p>
+                            </td>
+                            <td className="p-3 text-sm font-mono">{formatTelefono(socio.Telefono)}</td>
+                            <td className="p-3">
+                              <span
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  socio.EstadoSocio === "Activo"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {socio.EstadoSocio}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenQrDialog(socio)}
+                                disabled={!socio.CodigoQR}
+                              >
+                                <QrCodeIcon
+                                  className={`h-4 w-4 ${socio.CodigoQR ? "text-primary" : "text-muted-foreground"}`}
+                                />
+                              </Button>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => router.push(`/admin/socios/${socio.SocioID}/historial`)}
+                                  className="hover:bg-purple-50 transition-colors"
+                                  title="Ver historial de membresías"
+                                >
+                                  <History className="h-4 w-4 text-purple-600" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenMembresiaDialog(socio)}
+                                  className="hover:bg-blue-50 transition-colors"
+                                  title="Gestionar membresía"
+                                >
+                                  <CreditCard className="h-4 w-4 text-blue-600" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(socio)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(socio.SocioID)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {totalPages > 1 && (

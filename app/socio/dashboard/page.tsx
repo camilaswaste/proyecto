@@ -107,17 +107,44 @@ export default function SocioDashboardPage() {
         if (horariosResponse.ok) {
           const horariosData = await horariosResponse.json()
           const now = new Date()
-          const dayOfWeek = now.getDay()
+          const dayOfWeek = now.getDay() // 0=Domingo, 1=Lunes, ..., 6=Sábado
           const currentTime = now.getHours() * 60 + now.getMinutes()
 
-          const todaySchedule = horariosData.find((h: any) => h.DiaSemana === dayOfWeek)
-          if (todaySchedule && !todaySchedule.Cerrado) {
-            const [openHour, openMin] = todaySchedule.HoraApertura.split(":").map(Number)
-            const [closeHour, closeMin] = todaySchedule.HoraCierre.split(":").map(Number)
-            const openTime = openHour * 60 + openMin
-            const closeTime = closeHour * 60 + closeMin
+          console.log("[v0] Current day:", dayOfWeek, "Current time:", currentTime)
+          console.log("[v0] Horarios data:", horariosData)
 
-            setIsGymOpen(currentTime >= openTime && currentTime <= closeTime)
+          const todaySchedule = horariosData.find((h: any) => h.DiaSemana === dayOfWeek)
+          console.log("[v0] Today schedule:", todaySchedule)
+
+          if (todaySchedule && !todaySchedule.Cerrado) {
+            const parseTime = (timeStr: string) => {
+              // Si es un ISO string (contiene 'T'), extraer solo la parte de tiempo
+              if (timeStr.includes("T")) {
+                const date = new Date(timeStr)
+                // Obtener horas y minutos en hora local
+                const hour = date.getUTCHours()
+                const minute = date.getUTCMinutes()
+                return hour * 60 + minute
+              }
+              // Si es formato HH:MM:SS o HH:MM
+              const parts = timeStr.split(":")
+              const hour = Number.parseInt(parts[0])
+              const minute = Number.parseInt(parts[1])
+              return hour * 60 + minute
+            }
+
+            const openTime = parseTime(todaySchedule.HoraApertura)
+            const closeTime = parseTime(todaySchedule.HoraCierre)
+
+            console.log("[v0] Open time:", openTime, "Close time:", closeTime)
+
+            const isOpen = currentTime >= openTime && currentTime < closeTime
+            console.log("[v0] Is gym open?", isOpen)
+
+            setIsGymOpen(isOpen)
+          } else {
+            console.log("[v0] Gym is closed today or no schedule found")
+            setIsGymOpen(false)
           }
         }
       } catch (error) {

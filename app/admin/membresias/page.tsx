@@ -386,139 +386,141 @@ export default function AdminMembresiasPage() {
               </div>
 
               <div className="border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="text-left p-3 font-medium">
-                        <Button
-                          variant="ghost"
-                          className="h-auto p-0 hover:bg-transparent font-medium"
-                          onClick={() => handleSort("NombrePlan")}
-                        >
-                          Nombre del Plan
-                          <SortIcon field="NombrePlan" />
-                        </Button>
-                      </th>
-                      <th className="text-left p-3 font-medium">
-                        <Button
-                          variant="ghost"
-                          className="h-auto p-0 hover:bg-transparent font-medium"
-                          onClick={() => handleSort("Precio")}
-                        >
-                          Precio
-                          <SortIcon field="Precio" />
-                        </Button>
-                      </th>
-                      <th className="text-left p-3 font-medium">
-                        <Button
-                          variant="ghost"
-                          className="h-auto p-0 hover:bg-transparent font-medium"
-                          onClick={() => handleSort("DuracionDias")}
-                        >
-                          Duración
-                          <SortIcon field="DuracionDias" />
-                        </Button>
-                      </th>
-                      <th className="text-left p-3 font-medium">
-                        <Button
-                          variant="ghost"
-                          className="h-auto p-0 hover:bg-transparent font-medium"
-                          onClick={() => handleSort("TipoPlan")}
-                        >
-                          Tipo
-                          <SortIcon field="TipoPlan" />
-                        </Button>
-                      </th>
-                      <th className="text-left p-3 font-medium">
-                        <Button
-                          variant="ghost"
-                          className="h-auto p-0 hover:bg-transparent font-medium"
-                          onClick={() => handleSort("Activo")}
-                        >
-                          Estado
-                          <SortIcon field="Activo" />
-                        </Button>
-                      </th>
-                      <th className="text-left p-3 font-medium">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedPlanes.length === 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted">
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                          No se encontraron planes de membresía
-                        </td>
+                        <th className="text-left p-3 font-medium">
+                          <Button
+                            variant="ghost"
+                            className="h-auto p-0 hover:bg-transparent font-medium"
+                            onClick={() => handleSort("NombrePlan")}
+                          >
+                            Nombre del Plan
+                            <SortIcon field="NombrePlan" />
+                          </Button>
+                        </th>
+                        <th className="text-left p-3 font-medium">
+                          <Button
+                            variant="ghost"
+                            className="h-auto p-0 hover:bg-transparent font-medium"
+                            onClick={() => handleSort("Precio")}
+                          >
+                            Precio
+                            <SortIcon field="Precio" />
+                          </Button>
+                        </th>
+                        <th className="text-left p-3 font-medium">
+                          <Button
+                            variant="ghost"
+                            className="h-auto p-0 hover:bg-transparent font-medium"
+                            onClick={() => handleSort("DuracionDias")}
+                          >
+                            Duración
+                            <SortIcon field="DuracionDias" />
+                          </Button>
+                        </th>
+                        <th className="text-left p-3 font-medium">
+                          <Button
+                            variant="ghost"
+                            className="h-auto p-0 hover:bg-transparent font-medium"
+                            onClick={() => handleSort("TipoPlan")}
+                          >
+                            Tipo
+                            <SortIcon field="TipoPlan" />
+                          </Button>
+                        </th>
+                        <th className="text-left p-3 font-medium">
+                          <Button
+                            variant="ghost"
+                            className="h-auto p-0 hover:bg-transparent font-medium"
+                            onClick={() => handleSort("Activo")}
+                          >
+                            Estado
+                            <SortIcon field="Activo" />
+                          </Button>
+                        </th>
+                        <th className="text-left p-3 font-medium">Acciones</th>
                       </tr>
-                    ) : (
-                      paginatedPlanes.map((plan) => (
-                        <tr
-                          key={plan.PlanID}
-                          className={`border-t hover:bg-muted/50 transition-colors ${
-                            plan.TipoPlan === "Oferta" ? "bg-gradient-to-r from-amber-50/50 to-transparent" : ""
-                          }`}
-                        >
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{plan.NombrePlan}</span>
-                              {plan.TipoPlan === "Oferta" && plan.FechaFinOferta && (
-                                <div className="flex items-center gap-1">
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-sm">
-                                    <Sparkles className="h-3 w-3" />
-                                    OFERTA
-                                  </span>
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    <Clock className="h-3 w-3" />
-                                    {calcularTiempoRestante(plan.FechaFinOferta)}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            {plan.TipoPlan === "Oferta" && plan.PrecioOriginal ? (
-                              <div className="flex flex-col">
-                                <span className="text-sm text-muted-foreground line-through">
-                                  ${plan.PrecioOriginal.toLocaleString()}
-                                </span>
-                                <span className="font-bold text-orange-600">${plan.Precio.toLocaleString()}</span>
-                                <span className="text-xs text-green-600 font-medium">-{plan.Descuento}% OFF</span>
-                              </div>
-                            ) : (
-                              <span>${plan.Precio.toLocaleString()}</span>
-                            )}
-                          </td>
-                          <td className="p-3">{plan.DuracionDias} días</td>
-                          <td className="p-3">
-                            <span
-                              className={`text-sm ${plan.TipoPlan === "Oferta" ? "text-orange-600 font-medium" : "text-muted-foreground"}`}
-                            >
-                              {plan.TipoPlan}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                plan.Activo ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {plan.Activo ? "Activo" : "Inactivo"}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(plan)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDelete(plan.PlanID)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
+                    </thead>
+                    <tbody>
+                      {paginatedPlanes.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                            No se encontraron planes de membresía
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        paginatedPlanes.map((plan) => (
+                          <tr
+                            key={plan.PlanID}
+                            className={`border-t hover:bg-muted/50 transition-colors ${
+                              plan.TipoPlan === "Oferta" ? "bg-gradient-to-r from-amber-50/50 to-transparent" : ""
+                            }`}
+                          >
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{plan.NombrePlan}</span>
+                                {plan.TipoPlan === "Oferta" && plan.FechaFinOferta && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-sm">
+                                      <Sparkles className="h-3 w-3" />
+                                      OFERTA
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      <Clock className="h-3 w-3" />
+                                      {calcularTiempoRestante(plan.FechaFinOferta)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              {plan.TipoPlan === "Oferta" && plan.PrecioOriginal ? (
+                                <div className="flex flex-col">
+                                  <span className="text-sm text-muted-foreground line-through">
+                                    ${plan.PrecioOriginal.toLocaleString()}
+                                  </span>
+                                  <span className="font-bold text-orange-600">${plan.Precio.toLocaleString()}</span>
+                                  <span className="text-xs text-green-600 font-medium">-{plan.Descuento}% OFF</span>
+                                </div>
+                              ) : (
+                                <span>${plan.Precio.toLocaleString()}</span>
+                              )}
+                            </td>
+                            <td className="p-3">{plan.DuracionDias} días</td>
+                            <td className="p-3">
+                              <span
+                                className={`text-sm ${plan.TipoPlan === "Oferta" ? "text-orange-600 font-medium" : "text-muted-foreground"}`}
+                              >
+                                {plan.TipoPlan}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <span
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  plan.Activo ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {plan.Activo ? "Activo" : "Inactivo"}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(plan)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(plan.PlanID)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {totalPages > 1 && (
