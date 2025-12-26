@@ -17,13 +17,32 @@ export async function POST(request: NextRequest) {
 
     const pool = await getConnection()
 
-    // Verificar si el usuario existe
     const userResult = await pool
       .request()
       .input("email", sql.VarChar, email)
-      .query("SELECT UsuarioID, Nombre FROM Usuarios WHERE Email = @email")
+      .query(`
+        SELECT 
+          u.UsuarioID, 
+          COALESCE(u.Nombre, s.Nombre + ' ' + s.Apellido) AS Nombre,
+          u.Email
+        FROM Usuarios u
+        LEFT JOIN Socios s ON u.UsuarioID = s.UsuarioID
+        WHERE u.Email = @email
+        
+        UNION
+        
+        SELECT 
+          u.UsuarioID,
+          s.Nombre + ' ' + s.Apellido AS Nombre,
+          s.Email
+        FROM Socios s
+        INNER JOIN Usuarios u ON s.UsuarioID = u.UsuarioID
+        WHERE s.Email = @email AND (u.Email IS NULL OR u.Email = '' OR u.Email != @email)
+      `)
 
-    console.log("[v0] User found:", userResult.recordset.length > 0)
+    console.log("[v0] Query executed")
+    console.log("[v0] Records found:", userResult.recordset.length)
+    console.log("[v0] User data:", userResult.recordset[0] || "No user found")
 
     if (userResult.recordset.length === 0) {
       // Por seguridad, devolvemos éxito aunque el usuario no exista
