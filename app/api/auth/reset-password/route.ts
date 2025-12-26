@@ -1,54 +1,64 @@
-import { NextResponse } from "next/server"
-import { getConnection } from "@/lib/db"
 import { hashPassword } from "@/lib/auth"
+import { getConnection } from "@/lib/db"
+import sql from "mssql"
+import { type NextRequest, NextResponse } from "next/server"
 
-// Request password reset (would normally send email)
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { email } = body
+    const { token, newPassword } = await request.json()
 
-    if (!email) {
-      return NextResponse.json({ error: "Email es requerido" }, { status: 400 })
+    if (!token || !newPassword) {
+      return NextResponse.json({ error: "Token y nueva contraseña son requeridos" }, { status: 400 })
+    }
+
+    if (newPassword.length < 6) {
+      return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 })
     }
 
     const pool = await getConnection()
 
-    // Check if email exists in Usuarios or Socios
-    const usuarioResult = await pool
+    // Verificar token válido y no expirado
+    const tokenResult = await pool
       .request()
-      .input("email", email)
-      .query("SELECT UsuarioID FROM Usuarios WHERE Email = @email")
+      .input("token", sql.VarChar, token)
+      .query(`
+        SELECT tr.TokenID, tr.UsuarioID, tr.Usado, tr.FechaExpiracion
+        FROM TokensRecuperacion tr
+        WHERE tr.Token = @token
+          AND tr.Usado = 0
+          AND tr.FechaExpiracion > GETDATE()
+      `)
 
-    const socioResult = await pool
-      .request()
-      .input("email", email)
-      .query("SELECT SocioID FROM Socios WHERE Email = @email")
-
-    if (usuarioResult.recordset.length === 0 && socioResult.recordset.length === 0) {
-      // Don't reveal if email exists or not for security
-      return NextResponse.json({
-        message: "Si el email existe, recibirás instrucciones para restablecer tu contraseña",
-      })
+    if (tokenResult.recordset.length === 0) {
+      return NextResponse.json({ error: "Token inválido o expirado" }, { status: 401 })
     }
 
-    // In a real application, you would:
-    // 1. Generate a reset token
-    // 2. Store it in the database with expiration
-    // 3. Send an email with the reset link
-    // For now, we'll just return a success message
+    const tokenData = tokenResult.recordset[0]
 
-    return NextResponse.json({
-      message: "Si el email existe, recibirás instrucciones para restablecer tu contraseña",
-    })
+    // Hash de la nueva contraseña
+    const newPasswordHash = await hashPassword(newPassword)
+
+    // Actualizar contraseña del usuario
+    await pool
+      .request()
+      .input("usuarioID", sql.Int, tokenData.UsuarioID)
+      .input("passwordHash", sql.VarChar, newPasswordHash)
+      .query("UPDATE Usuarios SET PasswordHash = @passwordHash WHERE UsuarioID = @usuarioID")
+
+    // Marcar token como usado
+    await pool
+      .request()
+      .input("tokenID", sql.Int, tokenData.TokenID)
+      .query("UPDATE TokensRecuperacion SET Usado = 1 WHERE TokenID = @tokenID")
+
+    return NextResponse.json({ message: "Contraseña restablecida exitosamente" })
   } catch (error) {
-    console.error("Error al solicitar restablecimiento:", error)
-    return NextResponse.json({ error: "Error al procesar solicitud" }, { status: 500 })
+    console.error("Error al restablecer contraseña:", error)
+    return NextResponse.json({ error: "Error al restablecer contraseña" }, { status: 500 })
   }
 }
 
-// Reset password with token (simplified version)
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
     const { email, newPassword, adminOverride } = body
@@ -61,33 +71,20 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 })
     }
 
-    // In production, verify reset token here
     if (!adminOverride) {
-      return NextResponse.json({ error: "Token de restablecimiento inválido o expirado" }, { status: 401 })
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
     const pool = await getConnection()
     const newPasswordHash = await hashPassword(newPassword)
 
-    // Try updating in Usuarios table
     const usuarioResult = await pool
       .request()
-      .input("email", email)
-      .input("passwordHash", newPasswordHash)
+      .input("email", sql.VarChar, email)
+      .input("passwordHash", sql.VarChar, newPasswordHash)
       .query("UPDATE Usuarios SET PasswordHash = @passwordHash WHERE Email = @email")
 
     if (usuarioResult.rowsAffected[0] > 0) {
-      return NextResponse.json({ message: "Contraseña restablecida exitosamente" })
-    }
-
-    // Try updating in Socios table
-    const socioResult = await pool
-      .request()
-      .input("email", email)
-      .input("passwordHash", newPasswordHash)
-      .query("UPDATE Socios SET PasswordHash = @passwordHash WHERE Email = @email")
-
-    if (socioResult.rowsAffected[0] > 0) {
       return NextResponse.json({ message: "Contraseña restablecida exitosamente" })
     }
 
