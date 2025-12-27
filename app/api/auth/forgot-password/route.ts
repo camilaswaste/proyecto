@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Token saved to database")
 
     // Construir URL de reset
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mundo-fitness-chimbarongo.vercel.app"
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mundofitnesschimbarongo.company"
     const resetUrl = `${baseUrl}/reset-password/${token}`
 
     console.log("[v0] Reset URL:", resetUrl)
