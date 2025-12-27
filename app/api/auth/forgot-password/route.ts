@@ -65,27 +65,23 @@ export async function POST(request: NextRequest) {
       await pool
         .request()
         .input("usuarioID", sql.Int, usuario.ID)
-        .input("socioID", sql.Int, null)
-        .input("email", sql.VarChar, email)
         .input("token", sql.VarChar, token)
         .input("expiracion", sql.DateTime, expiracion)
         .input("tipoUsuario", sql.VarChar, "Usuario")
         .query(`
-          INSERT INTO TokensRecuperacion (Email, TipoUsuario, UsuarioID, SocioID, Token, FechaExpiracion)
-          VALUES (@email, @tipoUsuario, @usuarioID, @socioID, @token, @expiracion)
+          INSERT INTO TokensRecuperacion (TipoUsuario, UsuarioID, SocioID, Token, FechaExpiracion)
+          VALUES (@tipoUsuario, @usuarioID, NULL, @token, @expiracion)
         `)
     } else {
       await pool
         .request()
-        .input("usuarioID", sql.Int, null)
         .input("socioID", sql.Int, usuario.ID)
-        .input("email", sql.VarChar, email)
         .input("token", sql.VarChar, token)
         .input("expiracion", sql.DateTime, expiracion)
         .input("tipoUsuario", sql.VarChar, "Socio")
         .query(`
-          INSERT INTO TokensRecuperacion (Email, TipoUsuario, UsuarioID, SocioID, Token, FechaExpiracion)
-          VALUES (@email, @tipoUsuario, @usuarioID, @socioID, @token, @expiracion)
+          INSERT INTO TokensRecuperacion (TipoUsuario, UsuarioID, SocioID, Token, FechaExpiracion)
+          VALUES (@tipoUsuario, NULL, @socioID, @token, @expiracion)
         `)
     }
 
