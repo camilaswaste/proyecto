@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const result = await resend.emails.send({
-        from: "Mundo Fitness <mundo.fitness.chimbarongo03@gmail.com>",
+        from: "Mundo Fitness <noreply@mundofitnesschimbarongo.company>",
         to: email,
         subject: "Recuperación de Contraseña - Mundo Fitness",
         html: `
