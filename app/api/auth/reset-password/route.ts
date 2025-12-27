@@ -22,11 +22,11 @@ export async function POST(request: NextRequest) {
       .request()
       .input("token", sql.VarChar, token)
       .query(`
-        SELECT tr.TokenID, tr.UsuarioID, tr.Usado, tr.FechaExpiracion
-        FROM TokensRecuperacion tr
-        WHERE tr.Token = @token
-          AND tr.Usado = 0
-          AND tr.FechaExpiracion > GETDATE()
+        SELECT TokenID, TipoUsuario, UsuarioID, SocioID, Usado, FechaExpiracion
+        FROM TokensRecuperacion
+        WHERE Token = @token
+          AND Usado = 0
+          AND FechaExpiracion > GETDATE()
       `)
 
     if (tokenResult.recordset.length === 0) {
@@ -39,11 +39,19 @@ export async function POST(request: NextRequest) {
     const newPasswordHash = await hashPassword(newPassword)
 
     // Actualizar contraseña del usuario
-    await pool
-      .request()
-      .input("usuarioID", sql.Int, tokenData.UsuarioID)
-      .input("passwordHash", sql.VarChar, newPasswordHash)
-      .query("UPDATE Usuarios SET PasswordHash = @passwordHash WHERE UsuarioID = @usuarioID")
+    if (tokenData.TipoUsuario === "Usuario") {
+      await pool
+        .request()
+        .input("usuarioID", sql.Int, tokenData.UsuarioID)
+        .input("passwordHash", sql.VarChar, newPasswordHash)
+        .query("UPDATE Usuarios SET PasswordHash = @passwordHash WHERE UsuarioID = @usuarioID")
+    } else {
+      await pool
+        .request()
+        .input("socioID", sql.Int, tokenData.SocioID)
+        .input("passwordHash", sql.VarChar, newPasswordHash)
+        .query("UPDATE Socios SET PasswordHash = @passwordHash WHERE SocioID = @socioID")
+    }
 
     // Marcar token como usado
     await pool

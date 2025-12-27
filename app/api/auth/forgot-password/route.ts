@@ -22,22 +22,22 @@ export async function POST(request: NextRequest) {
       .input("email", sql.VarChar, email)
       .query(`
         SELECT 
-          u.UsuarioID, 
-          COALESCE(u.Nombre, s.Nombre + ' ' + s.Apellido) AS Nombre,
-          u.Email
-        FROM Usuarios u
-        LEFT JOIN Socios s ON u.UsuarioID = s.UsuarioID
-        WHERE u.Email = @email
+          UsuarioID AS ID,
+          Nombre,
+          Email,
+          'Usuario' AS TipoUsuario
+        FROM Usuarios
+        WHERE Email = @email
         
         UNION
         
         SELECT 
-          u.UsuarioID,
-          s.Nombre + ' ' + s.Apellido AS Nombre,
-          s.Email
-        FROM Socios s
-        INNER JOIN Usuarios u ON s.UsuarioID = u.UsuarioID
-        WHERE s.Email = @email AND (u.Email IS NULL OR u.Email = '' OR u.Email != @email)
+          SocioID AS ID,
+          Nombre + ' ' + Apellido AS Nombre,
+          Email,
+          'Socio' AS TipoUsuario
+        FROM Socios
+        WHERE Email = @email
       `)
 
     console.log("[v0] Query executed")
@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     console.log("[v0] User data:", userResult.recordset[0] || "No user found")
 
     if (userResult.recordset.length === 0) {
+      console.log("[v0] User found: false")
       // Por seguridad, devolvemos éxito aunque el usuario no exista
       return NextResponse.json({
         message: "Si el email existe, recibirás instrucciones para recuperar tu contraseña",
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     const usuario = userResult.recordset[0]
+    console.log("[v0] User found: true, Type:", usuario.TipoUsuario, "ID:", usuario.ID)
 
     // Generar token único
     const token = crypto.randomBytes(32).toString("hex")
@@ -59,16 +61,33 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Generated token:", token.substring(0, 10) + "...")
 
-    // Guardar token en la base de datos
-    await pool
-      .request()
-      .input("usuarioID", sql.Int, usuario.UsuarioID)
-      .input("token", sql.VarChar, token)
-      .input("expiracion", sql.DateTime, expiracion)
-      .query(`
-        INSERT INTO TokensRecuperacion (UsuarioID, Token, FechaExpiracion)
-        VALUES (@usuarioID, @token, @expiracion)
-      `)
+    if (usuario.TipoUsuario === "Usuario") {
+      await pool
+        .request()
+        .input("usuarioID", sql.Int, usuario.ID)
+        .input("socioID", sql.Int, null)
+        .input("email", sql.VarChar, email)
+        .input("token", sql.VarChar, token)
+        .input("expiracion", sql.DateTime, expiracion)
+        .input("tipoUsuario", sql.VarChar, "Usuario")
+        .query(`
+          INSERT INTO TokensRecuperacion (Email, TipoUsuario, UsuarioID, SocioID, Token, FechaExpiracion)
+          VALUES (@email, @tipoUsuario, @usuarioID, @socioID, @token, @expiracion)
+        `)
+    } else {
+      await pool
+        .request()
+        .input("usuarioID", sql.Int, null)
+        .input("socioID", sql.Int, usuario.ID)
+        .input("email", sql.VarChar, email)
+        .input("token", sql.VarChar, token)
+        .input("expiracion", sql.DateTime, expiracion)
+        .input("tipoUsuario", sql.VarChar, "Socio")
+        .query(`
+          INSERT INTO TokensRecuperacion (Email, TipoUsuario, UsuarioID, SocioID, Token, FechaExpiracion)
+          VALUES (@email, @tipoUsuario, @usuarioID, @socioID, @token, @expiracion)
+        `)
+    }
 
     console.log("[v0] Token saved to database")
 
