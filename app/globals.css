@@ -1,0 +1,265 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Base */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
+
+  --card: oklch(0.985 0 0);
+  --card-foreground: oklch(0.15 0 0);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+
+  /* Marca */
+  --primary: oklch(0.55 0.24 25);
+  --primary-foreground: oklch(1 0 0);
+
+  /* Neutrales */
+  --secondary: oklch(0.88 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+
+  --muted: oklch(0.94 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+
+  --accent: oklch(0.9 0 0);
+  --accent-foreground: oklch(0.15 0 0);
+
+  --destructive: oklch(0.5 0.27 27);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0.885 0 0);
+  --input: oklch(0.96 0 0);
+  --ring: oklch(0.55 0.24 25);
+
+  /* Charts */
+  --chart-1: oklch(0.55 0.24 25);
+  --chart-2: oklch(0.35 0 0);
+  --chart-3: oklch(0.65 0 0);
+  --chart-4: oklch(0.45 0.18 27);
+  --chart-5: oklch(0.75 0 0);
+
+  --radius: 0.625rem;
+
+  /* Sidebar */
+  --sidebar: oklch(0.965 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: oklch(0.55 0.24 25);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.915 0 0);
+  --sidebar-accent-foreground: oklch(0.15 0 0);
+  --sidebar-border: oklch(0.885 0 0);
+  --sidebar-ring: oklch(0.55 0.24 25);
+
+  /* EXTRA: “dinamismo” controlado */
+  --surface: oklch(0.995 0 0);          /* capa superior (cards/sections) */
+  --surface-2: oklch(0.975 0 0);        /* capa secundaria */
+  --shadow: 0 10px 30px -18px rgba(0,0,0,.25);
+  --shadow-soft: 0 10px 30px -22px rgba(0,0,0,.18);
+  --glow-red: 0 0 0 4px color-mix(in oklch, var(--primary), transparent 82%);
+}
+
+.dark {
+  --background: oklch(0.12 0 0);
+  --foreground: oklch(0.98 0 0);
+
+  --card: oklch(0.18 0 0);
+  --card-foreground: oklch(0.98 0 0);
+
+  --popover: oklch(0.15 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+
+  --primary: oklch(0.65 0.26 25);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.25 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.65 0 0);
+
+  --accent: oklch(0.28 0 0);
+  --accent-foreground: oklch(0.98 0 0);
+
+  --destructive: oklch(0.6 0.28 27);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0.28 0 0);
+  --input: oklch(0.22 0 0);
+  --ring: oklch(0.65 0.26 25);
+
+  --chart-1: oklch(0.65 0.26 25);
+  --chart-2: 217 91% 60%;
+  --chart-3: oklch(0.45 0 0);
+  --chart-4: oklch(0.55 0.2 27);
+  --chart-5: oklch(0.35 0 0);
+
+  --sidebar: oklch(0.15 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.65 0.26 25);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.22 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.28 0 0);
+  --sidebar-ring: oklch(0.65 0.26 25);
+
+  /* EXTRA */
+  --surface: oklch(0.14 0 0);
+  --surface-2: oklch(0.17 0 0);
+  --shadow: 0 16px 40px -26px rgba(0,0,0,.65);
+  --shadow-soft: 0 16px 40px -30px rgba(0,0,0,.55);
+  --glow-red: 0 0 0 4px color-mix(in oklch, var(--primary), transparent 84%);
+}
+
+@theme inline {
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  /* Selección con rojo de marca */
+  ::selection {
+    background: color-mix(in oklch, var(--primary), white 65%);
+    color: var(--foreground);
+  }
+  .dark ::selection {
+    background: color-mix(in oklch, var(--primary), black 35%);
+    color: var(--foreground);
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01" 1, "cv11" 1;
+  }
+
+  /* Scrollbar sutil con marca */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--primary), transparent 40%) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--primary), transparent 55%);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, var(--primary), transparent 35%);
+  }
+
+  /* Focus visible más pro */
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--glow-red);
+  }
+}
+
+@layer utilities {
+  /* Fondo “con vida” (sin perder sobriedad) */
+  .app-background {
+    background:
+      radial-gradient(900px 500px at 20% -10%, color-mix(in oklch, var(--primary), transparent 88%), transparent 60%),
+      radial-gradient(800px 520px at 110% 10%, color-mix(in oklch, var(--primary), transparent 92%), transparent 55%),
+      linear-gradient(to bottom, color-mix(in oklch, var(--background), var(--muted) 25%), var(--background));
+  }
+
+  /* Grid muy sutil para secciones grandes (landing, dashboard) */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in oklch, var(--foreground), transparent 92%) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--foreground), transparent 94%) 1px, transparent 1px);
+    background-size: 42px 42px;
+    background-position: center;
+  }
+
+  /* Superficies tipo “card” premium */
+  .card-surface {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--surface), white 0%),
+      color-mix(in oklch, var(--surface-2), white 0%)
+    );
+    box-shadow: var(--shadow-soft);
+    border: 1px solid color-mix(in oklch, var(--border), transparent 0%);
+  }
+
+  /* Hover con detalle rojo suave (ideal para cards de “Actividad reciente”) */
+  .hover-tint {
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+  .hover-tint:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow), var(--glow-red);
+    border-color: color-mix(in oklch, var(--primary), var(--border) 60%);
+  }
+
+  /* Texto con gradiente marca (para títulos tipo “Dashboard Administrativo”) */
+  .brand-gradient-text {
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--foreground), white 0%),
+      color-mix(in oklch, var(--primary), white 0%)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
