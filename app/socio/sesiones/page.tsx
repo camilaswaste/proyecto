@@ -1,4 +1,3 @@
-// /app/socio/sesiones/page.tsx
 "use client"
 
 import { DashboardLayout } from "@/components/dashboard-layout"
@@ -7,10 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getUser } from "@/lib/auth-client"
-import { Calendar, CheckCircle, Clock, X, XCircle } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
+import { Calendar, CheckCircle, Clock, X, XCircle } from "lucide-react"
 import Image from "next/image"
+import { useEffect, useMemo, useState } from "react"
 
 type EstadoSesion = "Agendada" | "Completada" | "Cancelada"
 interface Sesion {
@@ -59,13 +58,16 @@ export default function SocioSesionesPage() {
     if (response.ok) fetchSesiones()
   }
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("es-CL", {
+  const formatDate = (dateString: string) => {
+    const [year, month, day] = dateString.split("-").map(Number)
+    const date = new Date(year, month - 1, day)
+    return date.toLocaleDateString("es-CL", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
     })
+  }
 
   const estadoPill = (estado: EstadoSesion) => {
     // Sin verdes/amarillos: rojo + acentos fríos (slate/indigo) que complementan al rojo
@@ -92,12 +94,12 @@ export default function SocioSesionesPage() {
               <motion.div
                 className="absolute inset-0 rounded-full border-2 border-red-600/30"
                 animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.25, 0.6] }}
-                transition={{ duration: 1.4, repeat: Infinity }}
+                transition={{ duration: 1.4, repeat: Number.POSITIVE_INFINITY }}
               />
               <motion.div
                 className="absolute inset-2 rounded-full bg-red-600/20"
                 animate={{ scale: [1, 0.9, 1] }}
-                transition={{ duration: 1.4, repeat: Infinity }}
+                transition={{ duration: 1.4, repeat: Number.POSITIVE_INFINITY }}
               />
             </div>
             <p className="text-sm sm:text-base">Cargando sesiones...</p>
@@ -222,9 +224,11 @@ export default function SocioSesionesPage() {
                       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                           <Avatar className="h-12 w-12 sm:h-14 sm:w-14 border border-white/60 shadow-sm dark:border-white/10">
-                            <AvatarImage src={sesion.FotoURL} />
+                            <AvatarImage src={sesion.FotoURL || "/placeholder.svg"} />
                             <AvatarFallback className="bg-zinc-200 text-zinc-800 font-bold dark:bg-white/10 dark:text-zinc-100">
-                              {sesion.NombreEntrenador.split(" ").map((n) => n[0]).join("")}
+                              {sesion.NombreEntrenador.split(" ")
+                                .map((n) => n[0])
+                                .join("")}
                             </AvatarFallback>
                           </Avatar>
 
@@ -239,7 +243,9 @@ export default function SocioSesionesPage() {
                         </div>
 
                         <div className="flex items-center justify-between gap-2 sm:justify-end">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${estadoPill(sesion.Estado)}`}>
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${estadoPill(sesion.Estado)}`}
+                          >
                             <Clock className="h-3.5 w-3.5" />
                             Agendada
                           </span>
@@ -250,7 +256,9 @@ export default function SocioSesionesPage() {
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="flex items-start gap-3 rounded-xl border bg-zinc-50 p-3 text-sm text-zinc-800 dark:border-white/10 dark:bg-white/5 dark:text-zinc-100">
                             <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-300" />
-                            <span className="min-w-0 break-words text-xs sm:text-sm">{formatDate(sesion.FechaSesion)}</span>
+                            <span className="min-w-0 break-words text-xs sm:text-sm">
+                              {formatDate(sesion.FechaSesion)}
+                            </span>
                           </div>
 
                           <div className="flex items-start gap-3 rounded-xl border bg-zinc-50 p-3 text-sm text-zinc-800 dark:border-white/10 dark:bg-white/5 dark:text-zinc-100">

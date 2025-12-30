@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server"
 import { getConnection } from "@/lib/db"
-import sql from "mssql"
 import { crearNotificacion } from "@/lib/notifications"
+import sql from "mssql"
+import { NextResponse } from "next/server"
 
 export async function GET(request: Request, { params }: { params: Promise<{ claseID: string }> }) {
   try {

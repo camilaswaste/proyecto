@@ -1,13 +1,47 @@
-import { NextResponse } from "next/server"
 import { getConnection } from "@/lib/db"
 import sql from "mssql"
+import { NextResponse } from "next/server"
 
-const parseTimeToDate = (timeString: string) => {
-  if (!timeString) return null
-  const [hours, minutes] = timeString.split(":").map(Number)
-  const date = new Date()
-  date.setHours(hours, minutes, 0, 0)
-  return date
+const parseTimeString = (timeString: string): string => {
+  if (!timeString) return "00:00:00"
+  // Asegurarse de que tenga formato HH:mm o HH:mm:ss
+  const parts = timeString.split(":")
+  const hours = String(parts[0] || "0").padStart(2, "0")
+  const minutes = String(parts[1] || "0").padStart(2, "0")
+  const seconds = String(parts[2] || "0").padStart(2, "0")
+  return `${hours}:${minutes}:${seconds}`
+}
+
+const calcularProximaFecha = (fechaInicio: string, diaSemanaDeseado: string): string => {
+  const diasSemanaMap: Record<string, number> = {
+    Domingo: 0,
+    Lunes: 1,
+    Martes: 2,
+    Miércoles: 3,
+    Miercoles: 3,
+    Jueves: 4,
+    Viernes: 5,
+    Sábado: 6,
+    Sabado: 6,
+  }
+
+  const diaDeseado = diasSemanaMap[diaSemanaDeseado]
+  if (diaDeseado === undefined) {
+    // Si no se encuentra el día, usar la fecha de inicio tal cual
+    return fechaInicio
+  }
+
+  const fecha = new Date(fechaInicio + "T00:00:00")
+  const diaActual = fecha.getDay()
+
+  // Calcular cuántos días faltan para llegar al día deseado
+  let diasParaSumar = diaDeseado - diaActual
+  if (diasParaSumar < 0) {
+    diasParaSumar += 7 // Si ya pasó, ir a la próxima semana
+  }
+
+  fecha.setDate(fecha.getDate() + diasParaSumar)
+  return fecha.toISOString().split("T")[0]
 }
 
 const getEntrenadorID = async (usuarioID: number) => {
@@ -163,8 +197,8 @@ export async function POST(request: Request) {
       SocioID: rawSocioID,
     } = body
 
-    const horaInicioDate = parseTimeToDate(rawHoraInicio)
-    const horaFinDate = parseTimeToDate(rawHoraFin)
+    const horaInicioTime = parseTimeString(rawHoraInicio)
+    const horaFinTime = parseTimeString(rawHoraFin)
     const DiaSemana = rawDiaSemana ? String(rawDiaSemana).trim() : null
 
     const esPersonal = TipoClase === "Personal"
@@ -173,27 +207,33 @@ export async function POST(request: Request) {
     if (esPersonal) {
       const SocioID = Number(rawSocioID)
 
-      if (!SocioID || !FechaInicio || !horaInicioDate || !horaFinDate) {
+      if (!SocioID || !FechaInicio || !horaInicioTime || !horaFinTime || !DiaSemana) {
         await transaction.rollback()
         return NextResponse.json({ error: "Faltan campos obligatorios para sesión personal." }, { status: 400 })
       }
+
+      const fechaSesionCorrecta = calcularProximaFecha(FechaInicio, DiaSemana)
+
+      console.log(
+        `[v0] Creando sesión personal: Día seleccionado=${DiaSemana}, FechaInicio=${FechaInicio}, FechaCalculada=${fechaSesionCorrecta}, Hora=${horaInicioTime}-${horaFinTime}`,
+      )
 
       // Verificar solapamiento en SesionesPersonales
       const overlapCheck = await transaction
         .request()
         .input("EntrenadorID", sql.Int, entrenadorID)
-        .input("FechaSesion", sql.Date, FechaInicio)
-        .input("HoraInicio", sql.Time, horaInicioDate)
-        .input("HoraFin", sql.Time, horaFinDate)
+        .input("FechaSesion", sql.Date, fechaSesionCorrecta)
+        .input("HoraInicio", sql.VarChar(8), horaInicioTime)
+        .input("HoraFin", sql.VarChar(8), horaFinTime)
         .query(`
           SELECT TOP 1 SesionID FROM SesionesPersonales
           WHERE EntrenadorID = @EntrenadorID 
           AND FechaSesion = @FechaSesion
           AND Estado IN ('Agendada', 'Completada')
           AND (
-            (@HoraInicio >= HoraInicio AND @HoraInicio < HoraFin) OR
-            (@HoraFin > HoraInicio AND @HoraFin <= HoraFin) OR
-            (HoraInicio >= @HoraInicio AND HoraInicio < @HoraFin)
+            (CAST(@HoraInicio AS TIME) >= HoraInicio AND CAST(@HoraInicio AS TIME) < HoraFin) OR
+            (CAST(@HoraFin AS TIME) > HoraInicio AND CAST(@HoraFin AS TIME) <= HoraFin) OR
+            (HoraInicio >= CAST(@HoraInicio AS TIME) AND HoraInicio < CAST(@HoraFin AS TIME))
           )
         `)
 
@@ -202,19 +242,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Ya tienes otra sesión programada en este horario." }, { status: 409 })
       }
 
-      // Insertar en SesionesPersonales
       const sesionInsertResult = await transaction
         .request()
         .input("EntrenadorID", sql.Int, entrenadorID)
         .input("SocioID", sql.Int, SocioID)
-        .input("FechaSesion", sql.Date, FechaInicio)
-        .input("HoraInicio", sql.Time, horaInicioDate)
-        .input("HoraFin", sql.Time, horaFinDate)
+        .input("FechaSesion", sql.Date, fechaSesionCorrecta)
+        .input("HoraInicio", sql.VarChar(8), horaInicioTime)
+        .input("HoraFin", sql.VarChar(8), horaFinTime)
         .input("Notas", sql.NVarChar, Descripcion || NombreClase)
         .query(`
           INSERT INTO SesionesPersonales (EntrenadorID, SocioID, FechaSesion, HoraInicio, HoraFin, Estado, Notas)
           OUTPUT INSERTED.SesionID
-          VALUES (@EntrenadorID, @SocioID, @FechaSesion, @HoraInicio, @HoraFin, 'Agendada', @Notas)
+          VALUES (@EntrenadorID, @SocioID, @FechaSesion, CAST(@HoraInicio AS TIME), CAST(@HoraFin AS TIME), 'Agendada', @Notas)
         `)
 
       const nuevaSesionID = sesionInsertResult.recordset[0]?.SesionID
@@ -229,7 +268,7 @@ export async function POST(request: Request) {
     // **LÓGICA PARA CLASE GRUPAL**
     const CupoMaximo = Number(rawCupoMaximo)
 
-    if (!NombreClase || !DiaSemana || !horaInicioDate || !CupoMaximo || !Categoria) {
+    if (!NombreClase || !DiaSemana || !horaInicioTime || !CupoMaximo || !Categoria) {
       await transaction.rollback()
       return NextResponse.json({ error: "Faltan campos obligatorios para clase grupal." }, { status: 400 })
     }
@@ -239,17 +278,17 @@ export async function POST(request: Request) {
       .request()
       .input("EntrenadorID", sql.Int, entrenadorID)
       .input("DiaSemana", sql.NVarChar, DiaSemana)
-      .input("HoraInicio", sql.Time, horaInicioDate)
-      .input("HoraFin", sql.Time, horaFinDate)
+      .input("HoraInicio", sql.VarChar(8), horaInicioTime)
+      .input("HoraFin", sql.VarChar(8), horaFinTime)
       .query(`
         SELECT TOP 1 ClaseID FROM Clases
         WHERE EntrenadorID = @EntrenadorID 
         AND DiaSemana = @DiaSemana
         AND Activa = 1
         AND (
-          (@HoraInicio >= HoraInicio AND @HoraInicio < HoraFin) OR
-          (@HoraFin > HoraInicio AND @HoraFin <= HoraFin) OR
-          (HoraInicio >= @HoraInicio AND HoraInicio < @HoraFin)
+          (CAST(@HoraInicio AS TIME) >= HoraInicio AND CAST(@HoraInicio AS TIME) < HoraFin) OR
+          (CAST(@HoraFin AS TIME) > HoraInicio AND CAST(@HoraFin AS TIME) <= HoraFin) OR
+          (HoraInicio >= CAST(@HoraInicio AS TIME) AND HoraInicio < CAST(@HoraFin AS TIME))
         )
       `)
 
@@ -264,8 +303,8 @@ export async function POST(request: Request) {
       .input("Descripcion", sql.NVarChar, Descripcion)
       .input("EntrenadorID", sql.Int, entrenadorID)
       .input("DiaSemana", sql.NVarChar, DiaSemana)
-      .input("HoraInicio", sql.Time, horaInicioDate)
-      .input("HoraFin", sql.Time, horaFinDate)
+      .input("HoraInicio", sql.VarChar(8), horaInicioTime)
+      .input("HoraFin", sql.VarChar(8), horaFinTime)
       .input("CupoMaximo", sql.Int, CupoMaximo)
       .input("FechaInicio", sql.Date, FechaInicio)
       .input("FechaFin", sql.Date, FechaFin)
@@ -273,7 +312,7 @@ export async function POST(request: Request) {
       .query(`
         INSERT INTO Clases (NombreClase, Descripcion, EntrenadorID, DiaSemana, HoraInicio, HoraFin, CupoMaximo, FechaInicio, FechaFin, Activa, Categoria)
         OUTPUT INSERTED.ClaseID
-        VALUES (@NombreClase, @Descripcion, @EntrenadorID, @DiaSemana, @HoraInicio, @HoraFin, @CupoMaximo, @FechaInicio, @FechaFin, 1, @Categoria)
+        VALUES (@NombreClase, @Descripcion, @EntrenadorID, @DiaSemana, CAST(@HoraInicio AS TIME), CAST(@HoraFin AS TIME), @CupoMaximo, @FechaInicio, @FechaFin, 1, @Categoria)
       `)
 
     const nuevaClaseID = claseInsertResult.recordset[0]?.ClaseID
@@ -295,7 +334,7 @@ export async function PUT(request: Request) {
     const url = new URL(request.url)
     const id = url.searchParams.get("id")
     const usuarioID = url.searchParams.get("usuarioID")
-    const tipoClase = url.searchParams.get("tipo") // "Personal" o "Grupal"
+    const tipoClase = url.searchParams.get("tipo")
     const body = await request.json()
 
     const entrenadorID = await getEntrenadorID(Number(usuarioID))
@@ -318,28 +357,29 @@ export async function PUT(request: Request) {
       SocioID: rawSocioID,
     } = body
 
-    const horaInicioDate = parseTimeToDate(rawHoraInicio)
-    const horaFinDate = parseTimeToDate(rawHoraFin)
+    const horaInicioTime = parseTimeString(rawHoraInicio)
+    const horaFinTime = parseTimeString(rawHoraFin)
     const esPersonal = TipoClase === "Personal" || tipoClase === "Personal"
 
-    // **ACTUALIZAR SESIÓN PERSONAL**
     if (esPersonal) {
       const SocioID = Number(rawSocioID)
+      const DiaSemana = rawDiaSemana ? String(rawDiaSemana).trim() : null
+      const fechaSesionCorrecta = DiaSemana ? calcularProximaFecha(FechaInicio, DiaSemana) : FechaInicio
 
       await transaction
         .request()
         .input("SesionID", sql.Int, Number(id))
         .input("SocioID", sql.Int, SocioID)
-        .input("FechaSesion", sql.Date, FechaInicio)
-        .input("HoraInicio", sql.Time, horaInicioDate)
-        .input("HoraFin", sql.Time, horaFinDate)
+        .input("FechaSesion", sql.Date, fechaSesionCorrecta)
+        .input("HoraInicio", sql.VarChar(8), horaInicioTime)
+        .input("HoraFin", sql.VarChar(8), horaFinTime)
         .input("Notas", sql.NVarChar, Descripcion || NombreClase)
         .query(`
           UPDATE SesionesPersonales SET
             SocioID = @SocioID,
             FechaSesion = @FechaSesion,
-            HoraInicio = @HoraInicio,
-            HoraFin = @HoraFin,
+            HoraInicio = CAST(@HoraInicio AS TIME),
+            HoraFin = CAST(@HoraFin AS TIME),
             Notas = @Notas,
             FechaModificacion = GETDATE()
           WHERE SesionID = @SesionID
@@ -349,7 +389,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: "Sesión personal actualizada con éxito." })
     }
 
-    // **ACTUALIZAR CLASE GRUPAL**
     const DiaSemana = rawDiaSemana ? String(rawDiaSemana).trim() : null
     const CupoMaximo = Number(rawCupoMaximo)
 
@@ -359,8 +398,8 @@ export async function PUT(request: Request) {
       .input("NombreClase", sql.NVarChar, NombreClase)
       .input("Descripcion", sql.NVarChar, Descripcion)
       .input("DiaSemana", sql.NVarChar, DiaSemana)
-      .input("HoraInicio", sql.Time, horaInicioDate)
-      .input("HoraFin", sql.Time, horaFinDate)
+      .input("HoraInicio", sql.VarChar(8), horaInicioTime)
+      .input("HoraFin", sql.VarChar(8), horaFinTime)
       .input("CupoMaximo", sql.Int, CupoMaximo)
       .input("FechaInicio", sql.Date, FechaInicio)
       .input("FechaFin", sql.Date, FechaFin)
@@ -370,8 +409,8 @@ export async function PUT(request: Request) {
           NombreClase = @NombreClase,
           Descripcion = @Descripcion,
           DiaSemana = @DiaSemana, 
-          HoraInicio = @HoraInicio,
-          HoraFin = @HoraFin,
+          HoraInicio = CAST(@HoraInicio AS TIME),
+          HoraFin = CAST(@HoraFin AS TIME),
           CupoMaximo = @CupoMaximo,
           FechaInicio = @FechaInicio,
           FechaFin = @FechaFin,
@@ -394,14 +433,13 @@ export async function DELETE(request: Request) {
     const url = new URL(request.url)
     const id = url.searchParams.get("id")
     const usuarioID = url.searchParams.get("usuarioID")
-    const tipoClase = url.searchParams.get("tipo") // "Personal" o "Grupal"
+    const tipoClase = url.searchParams.get("tipo")
 
     const entrenadorID = await getEntrenadorID(Number(usuarioID))
     if (!entrenadorID) return NextResponse.json({ error: "No autorizado." }, { status: 403 })
 
     const pool = await getConnection()
 
-    // **ELIMINAR SESIÓN PERSONAL**
     if (tipoClase === "Personal") {
       const ownerCheck = await pool
         .request()
@@ -421,7 +459,6 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ message: "Sesión personal eliminada." })
     }
 
-    // **ELIMINAR CLASE GRUPAL**
     const ownerCheck = await pool
       .request()
       .input("ClaseID", sql.Int, Number(id))

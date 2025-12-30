@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { useToast } from "@/components/ui/toast" // ✅ CAMBIO: desde components/ui/toast
+import { useToast } from "@/hooks/use-toast"
 import { getUser } from "@/lib/auth-client"
 import {
   Brain,
@@ -33,6 +33,7 @@ import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 
 // --- TIPOS DE DATOS ---
+
 interface Clase {
   ClaseID: number
   NombreClase: string
@@ -74,6 +75,8 @@ interface ClaseFormData {
   SocioID: string
   SocioNombreCompleto: string
 }
+
+// --- CONSTANTES y UTILIDADES ---
 
 const CATEGORIAS = [
   {
@@ -259,7 +262,7 @@ const SocioSearch: React.FC<SocioSearchProps> = ({ SocioID, SocioNombreCompleto,
 
       {SocioID && (
         <div className="mt-2 p-2 bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-md flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-xs">
-          <User className="h-3 w-3" /> Socio vinculado: <strong>{SocioNombreCompleto}</strong>
+          <User className="h-3 w-3" /> Socio został powiązany: <strong>{SocioNombreCompleto}</strong>
         </div>
       )}
     </div>
@@ -476,7 +479,7 @@ const ClaseFormDialog: React.FC<ClaseFormDialogProps> = ({
 // --- COMPONENTE PRINCIPAL ---
 export default function EntrenadorClasesPage() {
   const router = useRouter()
-  const { toast } = useToast() // ✅ toast desde components/ui/toast
+  const { toast } = useToast()
 
   const [usuarioID, setUsuarioID] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -543,7 +546,7 @@ export default function EntrenadorClasesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!usuarioID) return
+    if (!usuarioID || !user?.usuarioID) return
 
     if (formData.HoraFin <= formData.HoraInicio) {
       toast({
@@ -609,10 +612,14 @@ export default function EntrenadorClasesPage() {
   }
 
   const handleDelete = async (clase: Clase) => {
-    if (!confirm(`¿Seguro que deseas eliminar esta ${clase.TipoClase === "Personal" ? "sesión personal" : "clase grupal"}?`)) {
+    if (
+      !confirm(
+        `¿Seguro que deseas eliminar esta ${clase.TipoClase === "Personal" ? "sesión personal" : "clase grupal"}?`,
+      )
+    ) {
       return
     }
-    if (!usuarioID) return
+    if (!usuarioID || !user?.usuarioID) return
 
     try {
       const response = await fetch(
@@ -724,7 +731,8 @@ export default function EntrenadorClasesPage() {
   const calcularAlturaProporcional = (horaInicio: string, horaFin: string, bloqueInicio: string, bloqueFin: string) => {
     const horaInicioMin = Number.parseInt(horaInicio.split(":")[0]) * 60 + Number.parseInt(horaInicio.split(":")[1])
     const horaFinMin = Number.parseInt(horaFin.split(":")[0]) * 60 + Number.parseInt(horaFin.split(":")[1])
-    const bloqueInicioMin = Number.parseInt(bloqueInicio.split(":")[0]) * 60 + Number.parseInt(bloqueInicio.split(":")[1])
+    const bloqueInicioMin =
+      Number.parseInt(bloqueInicio.split(":")[0]) * 60 + Number.parseInt(bloqueInicio.split(":")[1])
     const bloqueFinMin = Number.parseInt(bloqueFin.split(":")[0]) * 60 + Number.parseInt(bloqueFin.split(":")[1])
 
     const duracionClase = horaFinMin - horaInicioMin
@@ -736,7 +744,8 @@ export default function EntrenadorClasesPage() {
 
   const calcularPosicionVertical = (horaInicio: string, bloqueInicio: string, bloqueFin: string) => {
     const horaInicioMin = Number.parseInt(horaInicio.split(":")[0]) * 60 + Number.parseInt(horaInicio.split(":")[1])
-    const bloqueInicioMin = Number.parseInt(bloqueInicio.split(":")[0]) * 60 + Number.parseInt(bloqueInicio.split(":")[1])
+    const bloqueInicioMin =
+      Number.parseInt(bloqueInicio.split(":")[0]) * 60 + Number.parseInt(bloqueInicio.split(":")[1])
     const bloqueFinMin = Number.parseInt(bloqueFin.split(":")[0]) * 60 + Number.parseInt(bloqueFin.split(":")[1])
 
     const offsetMinutos = horaInicioMin - bloqueInicioMin
@@ -747,7 +756,8 @@ export default function EntrenadorClasesPage() {
   }
 
   const estaBloqueCompleto = (clasesEnBloque: any[], bloqueInicio: string, bloqueFin: string) => {
-    const bloqueInicioMin = Number.parseInt(bloqueInicio.split(":")[0]) * 60 + Number.parseInt(bloqueInicio.split(":")[1])
+    const bloqueInicioMin =
+      Number.parseInt(bloqueInicio.split(":")[0]) * 60 + Number.parseInt(bloqueInicio.split(":")[1])
     const bloqueFinMin = Number.parseInt(bloqueFin.split(":")[0]) * 60 + Number.parseInt(bloqueFin.split(":")[1])
     const duracionBloque = bloqueFinMin - bloqueInicioMin
     if (duracionBloque <= 0) return true
@@ -755,8 +765,12 @@ export default function EntrenadorClasesPage() {
     let minutosOcupados = 0
 
     clasesEnBloque.forEach((clase) => {
-      const inicio = Number.parseInt(formatearHora(clase.HoraInicio).split(":")[0]) * 60 + Number.parseInt(formatearHora(clase.HoraInicio).split(":")[1])
-      const fin = Number.parseInt(formatearHora(clase.HoraFin).split(":")[0]) * 60 + Number.parseInt(formatearHora(clase.HoraFin).split(":")[1])
+      const inicio =
+        Number.parseInt(formatearHora(clase.HoraInicio).split(":")[0]) * 60 +
+        Number.parseInt(formatearHora(clase.HoraInicio).split(":")[1])
+      const fin =
+        Number.parseInt(formatearHora(clase.HoraFin).split(":")[0]) * 60 +
+        Number.parseInt(formatearHora(clase.HoraFin).split(":")[1])
 
       const inicioEnBloque = Math.max(inicio, bloqueInicioMin)
       const finEnBloque = Math.min(fin, bloqueFinMin)
@@ -794,7 +808,10 @@ export default function EntrenadorClasesPage() {
               onValueChange={(v: any) => v && setVistaActual(v)}
               className="border border-border rounded-lg p-1 bg-muted/40"
             >
-              <ToggleGroupItem value="calendario" className="data-[state=on]:bg-background data-[state=on]:text-foreground">
+              <ToggleGroupItem
+                value="calendario"
+                className="data-[state=on]:bg-background data-[state=on]:text-foreground"
+              >
                 <CalendarIcon className="h-4 w-4 mr-2" /> Calendario
               </ToggleGroupItem>
               <ToggleGroupItem value="lista" className="data-[state=on]:bg-background data-[state=on]:text-foreground">
@@ -911,22 +928,43 @@ export default function EntrenadorClasesPage() {
                       <div>{bloque.fin}</div>
                     </div>
 
-                    {DIAS_SEMANA.map((dia) => {
+                    {DIAS_SEMANA.map((dia, indexDia) => {
                       const normalizedHeader = normalizeDay(dia)
+                      const fechaDelDia = fechasSemana[indexDia]
+
                       const clasesEnBloque = filteredClases.filter((clase) => {
-                        const diasClase = Array.from(
-                          new Set([
-                            ...(clase.DiaSemana ? clase.DiaSemana.split(",").map((d) => normalizeDay(d.trim())) : []),
-                            ...(Array.isArray(clase.DiasSemana) ? clase.DiasSemana.map((d) => normalizeDay(d)) : []),
-                          ]),
-                        ).filter(Boolean)
+                        if (clase.TipoClase === "Personal" && clase.FechaInicio) {
+                          // Obtener solo la fecha en formato YYYY-MM-DD sin timezone
+                          const fechaSesionStr = clase.FechaInicio.split("T")[0]
 
-                        if (!diasClase.includes(normalizedHeader)) return false
+                          // Obtener fecha del día del calendario en formato YYYY-MM-DD
+                          const year = fechaDelDia.getFullYear()
+                          const month = String(fechaDelDia.getMonth() + 1).padStart(2, "0")
+                          const day = String(fechaDelDia.getDate()).padStart(2, "0")
+                          const fechaDiaStr = `${year}-${month}-${day}`
 
+                          // Comparar strings directamente sin crear objetos Date
+                          if (fechaSesionStr !== fechaDiaStr) return false
+                        } else {
+                          // Para clases grupales: usar el día de la semana
+                          const diasClase = Array.from(
+                            new Set([
+                              ...(clase.DiaSemana ? clase.DiaSemana.split(",").map((d) => normalizeDay(d.trim())) : []),
+                              ...(Array.isArray(clase.DiasSemana) ? clase.DiasSemana.map((d) => normalizeDay(d)) : []),
+                            ]),
+                          ).filter(Boolean)
+
+                          if (!diasClase.includes(normalizedHeader)) return false
+                        }
+
+                        // Verificar que la hora de inicio coincida con el bloque
                         const h = formatearHora(clase.HoraInicio)
                         const m = Number.parseInt(h.split(":")[0]) * 60 + Number.parseInt(h.split(":")[1])
-                        const b = Number.parseInt(bloque.inicio.split(":")[0]) * 60 + Number.parseInt(bloque.inicio.split(":")[1])
-                        const bf = Number.parseInt(bloque.fin.split(":")[0]) * 60 + Number.parseInt(bloque.fin.split(":")[1])
+                        const b =
+                          Number.parseInt(bloque.inicio.split(":")[0]) * 60 +
+                          Number.parseInt(bloque.inicio.split(":")[1])
+                        const bf =
+                          Number.parseInt(bloque.fin.split(":")[0]) * 60 + Number.parseInt(bloque.fin.split(":")[1])
 
                         return m >= b && m < bf
                       })
@@ -937,7 +975,9 @@ export default function EntrenadorClasesPage() {
                         <div
                           key={dia}
                           className={`border-b border-r border-border p-1.5 min-h-[120px] transition-colors relative ${
-                            bloqueCompleto ? "bg-muted/70 cursor-not-allowed" : "bg-background hover:bg-accent/40 cursor-pointer group"
+                            bloqueCompleto
+                              ? "bg-muted/70 cursor-not-allowed"
+                              : "bg-background hover:bg-accent/40 cursor-pointer group"
                           }`}
                           onClick={() => !bloqueCompleto && handleOpenDialog(undefined, dia, bloque.inicio)}
                         >
@@ -967,7 +1007,11 @@ export default function EntrenadorClasesPage() {
                                 bloque.inicio,
                                 bloque.fin,
                               )
-                              const posicionPorcentaje = calcularPosicionVertical(formatearHora(c.HoraInicio), bloque.inicio, bloque.fin)
+                              const posicionPorcentaje = calcularPosicionVertical(
+                                formatearHora(c.HoraInicio),
+                                bloque.inicio,
+                                bloque.fin,
+                              )
 
                               const esPersonal = c.TipoClase === "Personal"
 
@@ -1017,13 +1061,16 @@ export default function EntrenadorClasesPage() {
                                     </Button>
                                   </div>
 
-                                  <div className={`font-bold truncate pr-2 uppercase text-[10px] tracking-tight ${cat.color}`}>
+                                  <div
+                                    className={`font-bold truncate pr-2 uppercase text-[10px] tracking-tight ${cat.color}`}
+                                  >
                                     {esPersonal ? `${c.NombreSocio} - Personal` : c.NombreClase}
                                   </div>
 
                                   <div className={`flex justify-between mt-1 items-center font-medium ${cat.color}`}>
                                     <span className="flex items-center gap-1 text-[9px]">
-                                      <Clock className="h-3 w-3" /> {formatearHora(c.HoraInicio)} - {formatearHora(c.HoraFin)}
+                                      <Clock className="h-3 w-3" /> {formatearHora(c.HoraInicio)} -{" "}
+                                      {formatearHora(c.HoraFin)}
                                     </span>
 
                                     {esPersonal ? (
@@ -1093,9 +1140,15 @@ export default function EntrenadorClasesPage() {
                           <td className="p-4">
                             <Badge
                               variant={clase.TipoClase === "Personal" ? "secondary" : "outline"}
-                              className={clase.TipoClase === "Personal" ? "bg-primary/10 text-primary border-primary/20" : ""}
+                              className={
+                                clase.TipoClase === "Personal" ? "bg-primary/10 text-primary border-primary/20" : ""
+                              }
                             >
-                              {clase.TipoClase === "Personal" ? <User className="h-3 w-3 mr-1" /> : <Users className="h-3 w-3 mr-1" />}
+                              {clase.TipoClase === "Personal" ? (
+                                <User className="h-3 w-3 mr-1" />
+                              ) : (
+                                <Users className="h-3 w-3 mr-1" />
+                              )}
                               {clase.TipoClase}
                             </Badge>
                           </td>
@@ -1136,10 +1189,20 @@ export default function EntrenadorClasesPage() {
                               className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenDialog(clase)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleOpenDialog(clase)}
+                              >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(clase)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive"
+                                onClick={() => handleDelete(clase)}
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>

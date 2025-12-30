@@ -75,6 +75,37 @@ export async function GET(request: Request) {
           AND Estado IN ('Completada', 'Cancelada')
       `)
 
+    const inicioSemana = new Date()
+    inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay() + 1) // Lunes
+    const inicioSemanaStr = inicioSemana.toISOString().split("T")[0]
+
+    // Clases impartidas esta semana (clases grupales que ya pasaron)
+    const clasesImpartidasResult = await pool
+      .request()
+      .input("entrenadorID", entrenadorID)
+      .input("inicioSemana", inicioSemanaStr)
+      .query(`
+        SELECT COUNT(*) as Total
+        FROM Clases c
+        WHERE c.EntrenadorID = @entrenadorID 
+          AND c.Activa = 1
+          AND DATEPART(WEEK, GETDATE()) = DATEPART(WEEK, @inicioSemana)
+      `)
+
+    // Sesiones personales completadas esta semana
+    const sesionesCompletadasResult = await pool
+      .request()
+      .input("entrenadorID", entrenadorID)
+      .input("inicioSemana", inicioSemanaStr)
+      .query(`
+        SELECT COUNT(*) as Total
+        FROM SesionesPersonales
+        WHERE EntrenadorID = @entrenadorID 
+          AND FechaSesion >= @inicioSemana
+          AND FechaSesion <= GETDATE()
+          AND Estado = 'Completada'
+      `)
+
     const agendaHoyResult = await pool
       .request()
       .input("entrenadorID", entrenadorID)
@@ -115,6 +146,8 @@ export async function GET(request: Request) {
       sesionesHoy: sesionesHoyResult.recordset[0]?.Total || 0,
       clasesSemanales: clasesSemanalesResult.recordset[0]?.Total || 0,
       asistenciaPromedio: Math.round(asistenciaResult.recordset[0]?.Promedio || 0),
+      clasesImpartidasSemana: clasesImpartidasResult.recordset[0]?.Total || 0,
+      sesionesCompletadasSemana: sesionesCompletadasResult.recordset[0]?.Total || 0,
       agendaHoy: agendaHoyResult.recordset || [],
     }
 

@@ -15,6 +15,8 @@ interface DashboardData {
   sesionesHoy: number
   clasesSemanales: number
   asistenciaPromedio: number
+  clasesImpartidasSemana: number
+  sesionesCompletadasSemana: number
   agendaHoy: Array<{
     Tipo: string
     ID: number
@@ -36,6 +38,17 @@ interface Aviso {
   Leido: boolean
 }
 
+interface ProximaSesion {
+  ClaseID: number
+  NombreClase: string
+  DiaSemana: string
+  HoraInicio: string
+  FechaInicio: string
+  TipoClase: string
+  NombreSocio?: string
+  CuposOcupados?: number
+}
+
 function StatCard(props: {
   title: string
   value: string
@@ -55,7 +68,12 @@ function StatCard(props: {
       ].join(" ")}
     >
       {/* Decor */}
-      <div className={["pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full blur-2xl opacity-40", props.gradientClassName ?? "bg-red-500/30"].join(" ")} />
+      <div
+        className={[
+          "pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full blur-2xl opacity-40",
+          props.gradientClassName ?? "bg-red-500/30",
+        ].join(" ")}
+      />
       <div className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-gradient-to-b from-red-500/70 via-red-500/20 to-transparent" />
 
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -100,10 +118,12 @@ export default function EntrenadorDashboardPage() {
   const [avisosNoLeidos, setAvisosNoLeidos] = useState(0)
   const [showAvisosModal, setShowAvisosModal] = useState(false)
   const [usuarioID, setUsuarioID] = useState<number | null>(null)
+  const [proximasSesiones, setProximasSesiones] = useState<ProximaSesion[]>([])
 
   useEffect(() => {
     fetchDashboard()
     fetchAvisos()
+    fetchProximasSesiones()
   }, [])
 
   const fetchDashboard = async () => {
@@ -122,6 +142,43 @@ export default function EntrenadorDashboardPage() {
       console.error("Error al cargar dashboard:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchProximasSesiones = async () => {
+    try {
+      const user = getUser()
+      if (!user?.usuarioID) return
+
+      const response = await fetch(`/api/entrenador/clases?usuarioID=${user.usuarioID}`)
+      if (response.ok) {
+        const sesiones = await response.json()
+
+        // Filtrar solo sesiones futuras
+        const hoy = new Date()
+        hoy.setHours(0, 0, 0, 0)
+
+        const proximasSesionesFiltradas = sesiones
+          .filter((sesion: any) => {
+            if (sesion.TipoClase === "Personal" && sesion.FechaInicio) {
+              const fechaSesion = new Date(sesion.FechaInicio)
+              return fechaSesion >= hoy
+            }
+            return sesion.TipoClase === "Grupal" && sesion.Estado === 1
+          })
+          .sort((a: any, b: any) => {
+            if (a.FechaInicio && b.FechaInicio) {
+              return new Date(a.FechaInicio).getTime() - new Date(b.FechaInicio).getTime()
+            }
+            const diasOrden = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+            return diasOrden.indexOf(a.DiaSemana) - diasOrden.indexOf(b.DiaSemana)
+          })
+          .slice(0, 3) // Máximo 3 sesiones
+
+        setProximasSesiones(proximasSesionesFiltradas)
+      }
+    } catch (error) {
+      console.error("Error al cargar próximas sesiones:", error)
     }
   }
 
@@ -168,6 +225,13 @@ export default function EntrenadorDashboardPage() {
     const sesiones = Math.max(0, total - clases)
     return { total, clases, sesiones }
   }, [data])
+
+  const formatearFecha = (fechaStr: string) => {
+    const fecha = new Date(fechaStr)
+    const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+    return `${diasSemana[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]}`
+  }
 
   if (loading) {
     return (
@@ -326,7 +390,8 @@ export default function EntrenadorDashboardPage() {
             </CardHeader>
             <CardContent className="relative z-10">
               <p className="text-sm text-slate-700 dark:text-slate-200 italic leading-relaxed">
-                “La constancia es la clave del éxito. Celebra cada pequeño logro con tus socios para mantener la motivación alta.”
+                "La constancia es la clave del éxito. Celebra cada pequeño logro con tus socios para mantener la
+                motivación alta."
               </p>
               <div className="mt-4 flex items-center gap-2">
                 <Badge className="bg-red-600 text-white hover:bg-red-600">Tip</Badge>
@@ -335,7 +400,6 @@ export default function EntrenadorDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Próximas sesiones (con barras) */}
           <Card className="border bg-background shadow-sm hover:shadow-md transition-all hover:border-blue-500/20 hover:ring-1 hover:ring-blue-500/10">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -347,25 +411,47 @@ export default function EntrenadorDashboardPage() {
               <CardDescription>Sesiones programadas esta semana</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {[
-                  { label: "Lunes", value: data.sesionesHoy, tone: "from-blue-500 to-cyan-400" },
-                  { label: "Miércoles", value: Math.max(1, data.sesionesHoy - 1), tone: "from-emerald-500 to-lime-400" },
-                  { label: "Viernes", value: Math.max(2, data.sesionesHoy + 1), tone: "from-red-500 to-orange-400" },
-                ].map((d) => (
-                  <div key={d.label} className="rounded-xl border bg-muted/30 p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{d.label}</span>
-                      <Badge variant="secondary" className="bg-background/70">
-                        {d.value} sesiones
-                      </Badge>
-                    </div>
-                    <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
-                      <div className={`h-full rounded-full bg-gradient-to-r ${d.tone}`} style={{ width: `${Math.min(100, Math.max(10, d.value * 15))}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {proximasSesiones.length === 0 ? (
+                <p className="text-center text-muted-foreground py-6 text-sm">
+                  No tienes sesiones próximas programadas
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {proximasSesiones.map((sesion, index) => {
+                    const esPersonal = sesion.TipoClase === "Personal"
+                    const etiquetaDia = esPersonal ? formatearFecha(sesion.FechaInicio) : sesion.DiaSemana
+                    const valor = esPersonal ? 1 : sesion.CuposOcupados || 0
+
+                    const colorGradient =
+                      index === 0
+                        ? "from-blue-500 to-cyan-400"
+                        : index === 1
+                          ? "from-emerald-500 to-lime-400"
+                          : "from-red-500 to-orange-400"
+
+                    return (
+                      <div key={`${sesion.ClaseID}-${index}`} className="rounded-xl border bg-muted/30 p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{etiquetaDia}</span>
+                          <Badge variant="secondary" className="bg-background/70">
+                            {esPersonal ? "1 sesión" : `${valor} inscritos`}
+                          </Badge>
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {sesion.HoraInicio.substring(0, 5)} - {sesion.NombreClase}
+                          {sesion.NombreSocio && ` (${sesion.NombreSocio})`}
+                        </div>
+                        <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full bg-gradient-to-r ${colorGradient}`}
+                            style={{ width: `${Math.min(100, Math.max(15, valor * 15))}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -382,15 +468,28 @@ export default function EntrenadorDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <KpiRow label="Clases impartidas" value={`${data.clasesSemanales}`} tone="text-blue-700 dark:text-blue-300" />
-                <KpiRow label="Sesiones completadas" value={`${Math.max(5, data.sesionesHoy * 2)}`} tone="text-red-700 dark:text-red-300" />
-                <KpiRow label="Tasa de asistencia" value={`${data.asistenciaPromedio}%`} tone="text-emerald-700 dark:text-emerald-300" />
+                <KpiRow
+                  label="Clases impartidas"
+                  value={`${data.clasesImpartidasSemana}`}
+                  tone="text-blue-700 dark:text-blue-300"
+                />
+                <KpiRow
+                  label="Sesiones completadas"
+                  value={`${data.sesionesCompletadasSemana}`}
+                  tone="text-red-700 dark:text-red-300"
+                />
+                <KpiRow
+                  label="Tasa de asistencia"
+                  value={`${data.asistenciaPromedio}%`}
+                  tone="text-emerald-700 dark:text-emerald-300"
+                />
               </div>
 
               <div className="mt-5 rounded-xl border bg-muted/30 p-3">
                 <p className="text-xs text-muted-foreground">Sugerencia</p>
                 <p className="text-sm font-medium mt-1">
-                  Mantén el promedio sobre <span className="text-emerald-700 dark:text-emerald-300">85%</span> para mejorar retención.
+                  Mantén el promedio sobre <span className="text-emerald-700 dark:text-emerald-300">85%</span> para
+                  mejorar retención.
                 </p>
               </div>
             </CardContent>
@@ -410,7 +509,10 @@ export default function EntrenadorDashboardPage() {
                   Tus sesiones y clases programadas
                 </CardDescription>
               </div>
-              <Badge variant="secondary" className="group-hover:bg-red-500/10 group-hover:text-red-600 transition-colors">
+              <Badge
+                variant="secondary"
+                className="group-hover:bg-red-500/10 group-hover:text-red-600 transition-colors"
+              >
                 {data.agendaHoy.length} actividades
               </Badge>
             </div>
@@ -446,14 +548,18 @@ export default function EntrenadorDashboardPage() {
                           <div
                             className={[
                               "h-10 w-10 rounded-xl flex items-center justify-center",
-                              isClase ? "bg-blue-500/15 text-blue-700 dark:text-blue-300" : "bg-red-500/10 text-red-700 dark:text-red-300",
+                              isClase
+                                ? "bg-blue-500/15 text-blue-700 dark:text-blue-300"
+                                : "bg-red-500/10 text-red-700 dark:text-red-300",
                             ].join(" ")}
                           >
                             {isClase ? <Dumbbell className="h-5 w-5" /> : <Users className="h-5 w-5" />}
                           </div>
 
                           <div className="flex-1">
-                            <p className={`text-sm font-semibold ${isClase ? "text-blue-900 dark:text-blue-100" : "text-foreground"}`}>
+                            <p
+                              className={`text-sm font-semibold ${isClase ? "text-blue-900 dark:text-blue-100" : "text-foreground"}`}
+                            >
                               {isClase ? "Clase Grupal" : "Sesión Personal"}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -464,7 +570,9 @@ export default function EntrenadorDashboardPage() {
                           <Badge
                             className={[
                               "rounded-full",
-                              isClase ? "bg-blue-600 text-white hover:bg-blue-600" : "bg-red-600 text-white hover:bg-red-600",
+                              isClase
+                                ? "bg-blue-600 text-white hover:bg-blue-600"
+                                : "bg-red-600 text-white hover:bg-red-600",
                             ].join(" ")}
                           >
                             {isClase ? "Clase" : "1:1"}
@@ -473,10 +581,14 @@ export default function EntrenadorDashboardPage() {
 
                         {/* Details */}
                         <div className="flex-1">
-                          <p className={`font-semibold ${isClase ? "text-blue-900 dark:text-blue-100" : "text-foreground"}`}>
+                          <p
+                            className={`font-semibold ${isClase ? "text-blue-900 dark:text-blue-100" : "text-foreground"}`}
+                          >
                             {item.NombreSocio}
                           </p>
-                          <p className={`text-sm mt-0.5 ${isClase ? "text-blue-700 dark:text-blue-300" : "text-muted-foreground"}`}>
+                          <p
+                            className={`text-sm mt-0.5 ${isClase ? "text-blue-700 dark:text-blue-300" : "text-muted-foreground"}`}
+                          >
                             {isClase ? `${item.Estado} inscritos` : item.Estado}
                           </p>
 
